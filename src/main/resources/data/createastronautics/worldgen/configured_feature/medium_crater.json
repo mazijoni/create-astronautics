@@ -3,11 +3,11 @@
     "config": {
         "radius": {
             "type": "minecraft:uniform",
-            "min_inclusive": 3,
-            "max_inclusive": 6
+            "min_inclusive": 6,
+            "max_inclusive": 8
         },
-        "depth_ratio": 0.35,
-        "rim_height": 1.5,
+        "depth_ratio": 0.32,
+        "rim_height": 2.0,
         "floor_state": {
             "Name": "minecraft:deepslate"
         },

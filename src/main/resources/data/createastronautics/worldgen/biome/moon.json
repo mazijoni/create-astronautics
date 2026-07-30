@@ -29,7 +29,7 @@
     "features": [
         [],
         [],
-        ["createastronautics:small_craters", "createastronautics:large_craters"],
+        ["createastronautics:small_craters", "createastronautics:medium_craters", "createastronautics:large_craters"],
         [],
         [],
         [],

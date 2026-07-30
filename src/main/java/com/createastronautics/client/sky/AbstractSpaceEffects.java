@@ -6,20 +6,21 @@ import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Shared "outer space" sky for the Moon and Deep Space dimensions: an always-dark, always-starry sky
@@ -34,8 +35,11 @@ public abstract class AbstractSpaceEffects extends DimensionSpecialEffects {
     private static final int STAR_COUNT = 2000;
     private static final long STAR_SEED = 231927L;
 
+    /** World-space (camera-centered) quad corners for each star, precomputed once and re-transformed every frame. */
+    private record Star(Vec3 p1, Vec3 p2, Vec3 p3, Vec3 p4, float brightness) {}
+
     @Nullable
-    private static VertexBuffer starBuffer;
+    private static List<Star> stars;
 
     protected AbstractSpaceEffects(boolean hasGround) {
         super(Float.NaN, hasGround, SkyType.NONE, false, true);
@@ -68,13 +72,14 @@ public abstract class AbstractSpaceEffects extends DimensionSpecialEffects {
     @Override
     public boolean renderSky(ClientLevel level, int ticks, float partialTick, Matrix4f modelViewMatrix, Camera camera, Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog) {
         RenderSystem.disableBlend();
+        RenderSystem.disableCull();
         RenderSystem.depthMask(false);
         setupFog.run();
 
         PoseStack poseStack = new PoseStack();
         poseStack.mulPose(modelViewMatrix);
 
-        renderStars(poseStack, projectionMatrix);
+        renderStars(poseStack);
 
         if (rendersSun()) {
             renderSun(level, partialTick, poseStack, projectionMatrix);
@@ -82,19 +87,25 @@ public abstract class AbstractSpaceEffects extends DimensionSpecialEffects {
 
         RenderSystem.depthMask(true);
         RenderSystem.enableBlend();
+        RenderSystem.enableCull();
         return true;
     }
 
-    private static void renderStars(PoseStack poseStack, Matrix4f projectionMatrix) {
-        if (starBuffer == null) {
-            starBuffer = buildStarBuffer();
+    private static void renderStars(PoseStack poseStack) {
+        if (stars == null) {
+            stars = buildStars();
         }
 
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        ShaderInstance shader = RenderSystem.getShader();
-        starBuffer.bind();
-        starBuffer.drawWithShader(poseStack.last().pose(), projectionMatrix, shader);
-        VertexBuffer.unbind();
+        Matrix4f pose = poseStack.last().pose();
+        BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        for (Star star : stars) {
+            builder.addVertex(pose, (float) star.p1.x, (float) star.p1.y, (float) star.p1.z).setColor(star.brightness, star.brightness, star.brightness, 1.0F);
+            builder.addVertex(pose, (float) star.p2.x, (float) star.p2.y, (float) star.p2.z).setColor(star.brightness, star.brightness, star.brightness, 1.0F);
+            builder.addVertex(pose, (float) star.p3.x, (float) star.p3.y, (float) star.p3.z).setColor(star.brightness, star.brightness, star.brightness, 1.0F);
+            builder.addVertex(pose, (float) star.p4.x, (float) star.p4.y, (float) star.p4.z).setColor(star.brightness, star.brightness, star.brightness, 1.0F);
+        }
+        BufferUploader.drawWithShader(builder.build());
     }
 
     private static void renderSun(ClientLevel level, float partialTick, PoseStack poseStack, Matrix4f projectionMatrix) {
@@ -118,9 +129,9 @@ public abstract class AbstractSpaceEffects extends DimensionSpecialEffects {
         poseStack.popPose();
     }
 
-    private static VertexBuffer buildStarBuffer() {
+    private static List<Star> buildStars() {
         RandomSource random = RandomSource.create(STAR_SEED);
-        BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        List<Star> result = new ArrayList<>(STAR_COUNT);
 
         int placed = 0;
         while (placed < STAR_COUNT) {
@@ -148,35 +159,19 @@ public abstract class AbstractSpaceEffects extends DimensionSpecialEffects {
             Vec3 rightRolled = right.scale(cosRoll).add(up.scale(sinRoll));
             Vec3 upRolled = right.scale(-sinRoll).add(up.scale(cosRoll));
 
-            double size = 0.15 + random.nextFloat() * 0.15;
+            double size = 0.2 + random.nextFloat() * 0.25;
             double distance = 100.0;
             Vec3 center = dir.scale(distance);
             float brightness = 0.6F + random.nextFloat() * 0.4F;
 
-            addStarQuad(builder, center, rightRolled.scale(size), upRolled.scale(size), brightness);
+            Vec3 r = rightRolled.scale(size);
+            Vec3 u = upRolled.scale(size);
+            // Order chosen so the quad's front face (right-hand winding) points back toward the camera at
+            // the origin, i.e. in the -dir direction, instead of outward along +dir where it'd be backface-culled.
+            result.add(new Star(center.subtract(r).subtract(u), center.subtract(r).add(u), center.add(r).add(u), center.add(r).subtract(u), brightness));
             placed++;
         }
 
-        return uploadStatic(builder.build());
-    }
-
-    private static void addStarQuad(BufferBuilder builder, Vec3 center, Vec3 right, Vec3 up, float brightness) {
-        Vec3 p1 = center.subtract(right).subtract(up);
-        Vec3 p2 = center.add(right).subtract(up);
-        Vec3 p3 = center.add(right).add(up);
-        Vec3 p4 = center.subtract(right).add(up);
-
-        builder.addVertex((float) p1.x, (float) p1.y, (float) p1.z).setColor(brightness, brightness, brightness, 1.0F);
-        builder.addVertex((float) p2.x, (float) p2.y, (float) p2.z).setColor(brightness, brightness, brightness, 1.0F);
-        builder.addVertex((float) p3.x, (float) p3.y, (float) p3.z).setColor(brightness, brightness, brightness, 1.0F);
-        builder.addVertex((float) p4.x, (float) p4.y, (float) p4.z).setColor(brightness, brightness, brightness, 1.0F);
-    }
-
-    private static VertexBuffer uploadStatic(com.mojang.blaze3d.vertex.MeshData mesh) {
-        VertexBuffer buffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-        buffer.bind();
-        buffer.upload(mesh);
-        VertexBuffer.unbind();
-        return buffer;
+        return result;
     }
 }
