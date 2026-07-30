@@ -1,0 +1,51 @@
+modLoader="javafml" #mandatory
+loaderVersion="${loader_version_range}" #mandatory
+license="${mod_license}"
+
+[[mods]] #mandatory
+modId="${mod_id}" #mandatory
+version="${mod_version}" #mandatory
+displayName="${mod_name}" #mandatory
+#logoFile="createastronautics.png" #optional
+description='''
+An addon for Create, Create Aeronautics and Sable that adds space travel.
+Currently adds two dimensions: the Moon and Deep Space.
+'''
+
+[[dependencies.${mod_id}]] #optional
+    modId="neoforge"
+    type="required"
+    versionRange="[${neo_version},)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+# Create Astronautics is designed as an addon for Create (+ Create Aeronautics / Sable), but the dimension/worldgen
+# features added so far don't call into their code yet, so they're declared as optional for now. Once this mod
+# starts using their APIs (e.g. rockets built from Create contraptions), these should be flipped to "required".
+[[dependencies.${mod_id}]]
+    modId="create"
+    type="optional"
+    versionRange="[6,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="create_aeronautics"
+    type="optional"
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="sable"
+    type="optional"
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"

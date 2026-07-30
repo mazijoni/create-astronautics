@@ -1,0 +1,11 @@
+{
+    "type": "createastronautics:moon_type",
+    "generator": {
+        "type": "minecraft:noise",
+        "settings": "createastronautics:moon",
+        "biome_source": {
+            "type": "minecraft:fixed",
+            "biome": "createastronautics:moon"
+        }
+    }
+}

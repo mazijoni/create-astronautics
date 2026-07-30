@@ -1,0 +1,21 @@
+{
+    "type": "createastronautics:crater",
+    "config": {
+        "radius": {
+            "type": "minecraft:uniform",
+            "min_inclusive": 6,
+            "max_inclusive": 9
+        },
+        "depth_ratio": 0.3,
+        "rim_height": 2.0,
+        "floor_state": {
+            "Name": "minecraft:deepslate"
+        },
+        "wall_state": {
+            "Name": "minecraft:tuff"
+        },
+        "rim_state": {
+            "Name": "minecraft:stone"
+        }
+    }
+}
