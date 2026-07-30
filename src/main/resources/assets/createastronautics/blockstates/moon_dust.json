@@ -1,0 +1,9 @@
+{
+    "variants": {
+        "": [
+            { "model": "createastronautics:block/moon_dust", "weight": 5 },
+            { "model": "createastronautics:block/moon_dust_2", "weight": 1 },
+            { "model": "createastronautics:block/moon_dust_3", "weight": 1 }
+        ]
+    }
+}

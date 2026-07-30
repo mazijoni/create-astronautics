@@ -1,11 +1,26 @@
 {
     "type": "createastronautics:moon_type",
     "generator": {
-        "type": "minecraft:noise",
-        "settings": "createastronautics:moon",
-        "biome_source": {
-            "type": "minecraft:fixed",
-            "biome": "createastronautics:moon"
+        "type": "minecraft:flat",
+        "settings": {
+            "biome": "createastronautics:moon",
+            "lakes": false,
+            "features": true,
+            "layers": [
+                {
+                    "block": "minecraft:deepslate",
+                    "height": 64
+                },
+                {
+                    "block": "minecraft:stone",
+                    "height": 60
+                },
+                {
+                    "block": "createastronautics:moon_dust",
+                    "height": 3
+                }
+            ],
+            "structure_overrides": []
         }
     }
 }
