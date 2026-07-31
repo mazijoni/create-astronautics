@@ -19,9 +19,21 @@ public class AmbienceSoundHandler {
             return;
         }
 
-        if (level.dimension() == ModDimensions.DEEP_SPACE) {
+        boolean deepSpace = level.dimension() == ModDimensions.DEEP_SPACE;
+        boolean moon = level.dimension() == ModDimensions.MOON;
+        if (!deepSpace && !moon) {
+            return;
+        }
+
+        // There's no water here, so the "drowning" hurt sound makes no sense - drop it entirely either way.
+        if (event.getSound().getLocation().getPath().contains("drown")) {
             event.setSound(null);
-        } else if (level.dimension() == ModDimensions.MOON) {
+            return;
+        }
+
+        if (deepSpace) {
+            event.setSound(null);
+        } else {
             event.setSound(new MuffledSoundInstance(event.getSound(), 0.55F, 0.85F));
         }
     }

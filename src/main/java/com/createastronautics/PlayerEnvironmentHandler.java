@@ -12,17 +12,21 @@ import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingBreatheEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDrownEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Handles the "no atmosphere" survival aspects of the Moon and Deep Space: reduced/zero gravity, and
- * suffocating (same as being underwater) unless the player is wearing the complete space suit.
+ * Handles the "no atmosphere" survival aspects of the Moon and Deep Space: reduced/zero gravity, fall
+ * damage scaled to match, and suffocating (same as being underwater, minus the bubble particles that make
+ * no sense in a vacuum) unless the player is wearing the complete space suit.
  */
 @EventBusSubscriber(modid = CreateAstronautics.MODID)
 public class PlayerEnvironmentHandler {
     private static final ResourceLocation GRAVITY_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(CreateAstronautics.MODID, "planetary_gravity");
+    private static final ResourceLocation FALL_DAMAGE_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(CreateAstronautics.MODID, "planetary_fall_damage");
 
-    // Fraction subtracted from normal gravity: -1.0 = weightless, -5.0/6.0 = 1/6 gravity (like the real Moon).
+    // Fraction subtracted from normal gravity (and, to match, fall damage): -1.0 = weightless/no fall damage,
+    // -5.0/6.0 = 1/6 gravity, like the real Moon.
     private static final double DEEP_SPACE_GRAVITY_FACTOR = -1.0;
     private static final double MOON_GRAVITY_FACTOR = -5.0 / 6.0;
 
@@ -33,16 +37,20 @@ public class PlayerEnvironmentHandler {
             return;
         }
 
-        AttributeInstance gravity = player.getAttribute(Attributes.GRAVITY);
-        if (gravity == null) {
+        Double factor = gravityFactorFor(player.level().dimension());
+
+        applyOrClear(player.getAttribute(Attributes.GRAVITY), GRAVITY_MODIFIER_ID, factor);
+        applyOrClear(player.getAttribute(Attributes.FALL_DAMAGE_MULTIPLIER), FALL_DAMAGE_MODIFIER_ID, factor);
+    }
+
+    private static void applyOrClear(AttributeInstance attribute, ResourceLocation modifierId, Double factor) {
+        if (attribute == null) {
             return;
         }
-
-        Double factor = gravityFactorFor(player.level().dimension());
         if (factor == null) {
-            gravity.removeModifier(GRAVITY_MODIFIER_ID);
+            attribute.removeModifier(modifierId);
         } else {
-            gravity.addOrUpdateTransientModifier(new AttributeModifier(GRAVITY_MODIFIER_ID, factor, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+            attribute.addOrUpdateTransientModifier(new AttributeModifier(modifierId, factor, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
         }
     }
 
@@ -55,6 +63,18 @@ public class PlayerEnvironmentHandler {
         boolean noAtmosphere = gravityFactorFor(player.level().dimension()) != null;
         if (noAtmosphere && !isWearingFullSpaceSuit(player)) {
             event.setCanBreathe(false);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLivingDrown(LivingDrownEvent event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+
+        // No water means no bubbles floating up when suffocating - keep the damage, drop the particles.
+        if (gravityFactorFor(player.level().dimension()) != null) {
+            event.setBubbleCount(0);
         }
     }
 
