@@ -3,6 +3,7 @@ package com.createastronautics;
 import com.createastronautics.block.ModBlocks;
 import com.createastronautics.item.ModArmorMaterials;
 import com.createastronautics.item.ModItems;
+import com.createastronautics.worldgen.ModDensityFunctionTypes;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -18,6 +19,7 @@ public class CreateAstronautics {
         ModArmorMaterials.ARMOR_MATERIALS.register(modEventBus);
         ModBlocks.BLOCKS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
+        ModDensityFunctionTypes.DENSITY_FUNCTION_TYPES.register(modEventBus);
         CreateAstronauticsTab.CREATIVE_MODE_TABS.register(modEventBus);
     }
 }
