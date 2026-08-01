@@ -26,26 +26,33 @@ Currently adds two dimensions: the Moon and Deep Space.
     ordering="NONE"
     side="BOTH"
 
-# Create Astronautics is designed as an addon for Create (+ Create Aeronautics / Sable), but the dimension/worldgen
-# features added so far don't call into their code yet, so they're declared as optional for now. Once this mod
-# starts using their APIs (e.g. rockets built from Create contraptions), these should be flipped to "required".
+# Create Astronautics is an addon for Create (+ Create Aeronautics / Sable) - the space suit's visor uses
+# Create's own baked-mesh rendering utilities, and Sable's per-dimension gravity is configured for the Moon
+# and Deep Space, so these are genuine requirements now rather than optional.
 [[dependencies.${mod_id}]]
     modId="create"
-    type="optional"
+    type="required"
     versionRange="[6,)"
     ordering="AFTER"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
-    modId="create_aeronautics"
-    type="optional"
+    modId="aeronautics"
+    type="required"
     versionRange="[0,)"
     ordering="AFTER"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
     modId="sable"
-    type="optional"
+    type="required"
     versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="geckolib"
+    type="required"
+    versionRange="[4,)"
     ordering="AFTER"
     side="BOTH"

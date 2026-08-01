@@ -1,0 +1,8 @@
+{
+    "feature": "createastronautics:crater_material",
+    "placement": [
+        {
+            "type": "minecraft:biome"
+        }
+    ]
+}

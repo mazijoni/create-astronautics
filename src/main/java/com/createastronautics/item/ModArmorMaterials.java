@@ -18,7 +18,7 @@ import java.util.Map;
 public class ModArmorMaterials {
     public static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS = DeferredRegister.create(Registries.ARMOR_MATERIAL, CreateAstronautics.MODID);
 
-    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> IRON_SPACE_SUIT = ARMOR_MATERIALS.register("iron_space_suit", () -> {
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> BRASS_SPACE_SUIT = ARMOR_MATERIALS.register("brass_space_suit", () -> {
         Map<ArmorItem.Type, Integer> defense = new EnumMap<>(ArmorItem.Type.class);
         defense.put(ArmorItem.Type.BOOTS, 2);
         defense.put(ArmorItem.Type.LEGGINGS, 5);
@@ -31,7 +31,7 @@ public class ModArmorMaterials {
                 9,
                 SoundEvents.ARMOR_EQUIP_IRON,
                 () -> Ingredient.of(Items.IRON_INGOT),
-                List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(CreateAstronautics.MODID, "iron_space_suit"))),
+                List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(CreateAstronautics.MODID, "brass_space_suit"))),
                 0.0F,
                 0.0F);
     });

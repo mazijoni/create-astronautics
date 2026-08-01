@@ -20,11 +20,23 @@ sourceSets.main.resources {
 }
 
 repositories {
-    // Modrinth's maven, used for optional compile-time API access to Create / Create Aeronautics / Sable once
-    // this addon starts calling into their code. Not required for the worldgen/dimension work added so far.
+    // Modrinth's maven, used for compile-time API access to Create / Create Aeronautics / Sable.
     maven {
         name = "Modrinth"
         url = "https://api.modrinth.com/maven"
+    }
+
+    // GeckoLib, used for the animated space suit model.
+    maven {
+        name = "GeckoLib"
+        url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+    }
+
+    // Create's own maven - Modrinth's maven wrapper only serves Create's own fat jar, not Flywheel/Catnip
+    // as separate artifacts, so those two need to come from here instead.
+    maven {
+        name = "CreateMod"
+        url = "https://maven.createmod.net/"
     }
 }
 
@@ -83,11 +95,23 @@ configurations {
 }
 
 dependencies {
-    // Create Astronautics is an addon for Create (+ Create Aeronautics / Sable). Those mods are not yet called
-    // into from Java code (the current feature set is worldgen/dimensions only), so no compile dependency is
-    // wired up yet. When we start using their APIs, add compileOnly + localRuntime entries here, e.g.:
-    // compileOnly "maven.modrinth:create:VERSION"
-    // localRuntime "maven.modrinth:create:VERSION"
+    // Create Astronautics is an addon for Create (+ Create Aeronautics / Sable) - the space suit model uses
+    // GeckoLib, and its visor uses Create's own baked-mesh rendering utilities.
+    compileOnly "maven.modrinth:create:6.0.10+mc1.21.1"
+    localRuntime "maven.modrinth:create:6.0.10+mc1.21.1"
+
+    compileOnly "maven.modrinth:create-aeronautics:1.3.0+mc1.21.1"
+    localRuntime "maven.modrinth:create-aeronautics:1.3.0+mc1.21.1"
+
+    compileOnly "maven.modrinth:sable:2.0.3+mc1.21.1"
+    localRuntime "maven.modrinth:sable:2.0.3+mc1.21.1"
+
+    // Flywheel/Catnip back the space suit visor's baked-mesh rendering; both are bundled inside Create's own
+    // jar at runtime, but need to be resolved separately here for compiling against their classes.
+    compileOnly "dev.engine-room.flywheel:flywheel-neoforge-1.21.1:1.0.6-42"
+    compileOnly "net.createmod.catnip:Catnip-NeoForge-1.21.1:0.8.54"
+
+    implementation "software.bernie.geckolib:geckolib-neoforge-1.21.1:4.7.2"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

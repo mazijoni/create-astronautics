@@ -1,8 +1,8 @@
 {
-    "item.createastronautics.iron_space_suit_helmet": "Iron Space Suit Helmet",
-    "item.createastronautics.iron_space_suit_chestplate": "Iron Space Suit",
-    "item.createastronautics.iron_space_suit_leggings": "Iron Space Suit Leggings",
-    "item.createastronautics.iron_space_suit_boots": "Iron Space Suit Boots",
+    "item.createastronautics.brass_space_suit_helmet": "Brass Space Suit Helmet",
+    "item.createastronautics.brass_space_suit_chestplate": "Brass Space Suit",
+    "item.createastronautics.brass_space_suit_leggings": "Brass Space Suit Leggings",
+    "item.createastronautics.brass_space_suit_boots": "Brass Space Suit Boots",
     "block.createastronautics.moon_dust": "Moon Dust",
     "item.createastronautics.moon_dust": "Moon Dust",
     "itemGroup.createastronautics": "Create Astronautics"
