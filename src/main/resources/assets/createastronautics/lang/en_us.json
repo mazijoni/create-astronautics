@@ -5,5 +5,22 @@
     "item.createastronautics.brass_space_suit_boots": "Brass Space Suit Boots",
     "block.createastronautics.moon_dust": "Moon Dust",
     "item.createastronautics.moon_dust": "Moon Dust",
-    "itemGroup.createastronautics": "Create Astronautics"
+    "block.createastronautics.solid_rocket_booster": "Solid Rocket Booster",
+    "item.createastronautics.solid_rocket_booster": "Solid Rocket Booster",
+    "gui.goggles.solid_rocket_booster.title": "Booster Stats:",
+    "gui.goggles.solid_rocket_booster.status": "Status",
+    "gui.goggles.solid_rocket_booster.status.working": "Working",
+    "gui.goggles.solid_rocket_booster.status.not_powered": "Not Powered",
+    "gui.goggles.solid_rocket_booster.status.no_fuel": "No Fuel!",
+    "gui.goggles.solid_rocket_booster.efficiency": "Efficiency",
+    "gui.goggles.solid_rocket_booster.thrust_output": "Thrust Output",
+    "gui.goggles.solid_rocket_booster.thrust_label": "Thrust: ",
+    "gui.goggles.solid_rocket_booster.fuel_label": "Solid Fuel",
+    "gui.goggles.solid_rocket_booster.burn_time": " burn time",
+    "itemGroup.createastronautics": "Create Astronautics",
+    "key.categories.createastronautics": "Create Astronautics",
+    "key.createastronautics.toggle_magnetic_boots": "Toggle Magnetic Boots",
+    "hud.createastronautics.magnetic_boots.on": "Magnet: ON",
+    "hud.createastronautics.magnetic_boots.off": "Magnet: OFF",
+    "entity.createastronautics.magnetic_anchor": "Magnetic Anchor"
 }

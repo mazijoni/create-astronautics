@@ -15,4 +15,15 @@ public class ModBlocks {
                     .mapColor(MapColor.STONE)
                     .sound(SoundType.SAND)
                     .strength(0.5F)));
+
+    public static final DeferredBlock<SolidRocketBoosterBlock> SOLID_ROCKET_BOOSTER = BLOCKS.register("solid_rocket_booster",
+            () -> new SolidRocketBoosterBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .sound(SoundType.METAL)
+                    .strength(3.5F)
+                    // Matches Create's own smart chute: its model doesn't fill the block, and its texture has
+                    // cutout gaps you can see through, so it must not behave like a solid full cube.
+                    .noOcclusion()
+                    .isSuffocating((state, level, pos) -> false)
+                    .isRedstoneConductor((state, level, pos) -> false)));
 }

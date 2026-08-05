@@ -1,6 +1,7 @@
 package com.createastronautics;
 
 import com.createastronautics.item.ModItems;
+import com.createastronautics.magnetic.MagneticBootsNetworkHandler;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -36,6 +37,10 @@ public class PlayerEnvironmentHandler {
     // hurt at 1/6 normal damage.
     private static final double FALL_DAMAGE_CANCEL_FACTOR = -1.0;
 
+    // How close to a floor/ship deck counts as "standing on it" for restoring normal gravity in Deep Space -
+    // tighter than the magnetic boots' own reach, since this is passive ambient gravity, not an active pull.
+    private static final double GROUNDED_GRAVITY_TOLERANCE = 0.5;
+
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
@@ -43,11 +48,28 @@ public class PlayerEnvironmentHandler {
             return;
         }
 
-        Double factor = gravityFactorFor(player.level().dimension());
+        Double factor = appliedGravityFactor(player);
 
         applyOrClear(player.getAttribute(Attributes.GRAVITY), GRAVITY_MODIFIER_ID, factor);
         applyOrClear(player.getAttribute(Attributes.FALL_DAMAGE_MULTIPLIER), FALL_DAMAGE_MODIFIER_ID,
                 factor == null ? null : FALL_DAMAGE_CANCEL_FACTOR);
+    }
+
+    /**
+     * The gravity attribute modifier to actually apply - unlike {@link #gravityFactorFor}, this restores
+     * normal gravity in Deep Space whenever the magnetic boots toggle is on (see
+     * {@link MagneticBootsNetworkHandler#isActive}) and there's a floor or ship deck within reach (see
+     * {@link SupportSurface}). With the boots off, this does nothing extra at all - just the plain
+     * weightlessness below, same as if magnetic boots didn't exist. The Moon keeps its constant 1/6 gravity
+     * regardless - it already has ambient gravity everywhere, floor or not, and isn't tied to the boots.
+     */
+    private static Double appliedGravityFactor(Player player) {
+        if (player.level().dimension() == ModDimensions.DEEP_SPACE) {
+            boolean magnetActive = MagneticBootsNetworkHandler.isActive(player) && MagneticBootsNetworkHandler.canActivate(player);
+            boolean grounded = magnetActive && SupportSurface.isNear(player, GROUNDED_GRAVITY_TOLERANCE);
+            return grounded ? null : DEEP_SPACE_GRAVITY_FACTOR;
+        }
+        return gravityFactorFor(player.level().dimension());
     }
 
     @SubscribeEvent

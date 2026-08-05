@@ -38,6 +38,14 @@ repositories {
         name = "CreateMod"
         url = "https://maven.createmod.net/"
     }
+
+    // Sable's own maven - Modrinth's maven wrapper only serves Sable's own fat jar, which jar-in-jars its
+    // companion module (Pose3dc/SubLevelAccess/etc, used for ship-relative transforms) rather than exposing
+    // it as a normal transitive dependency, so that needs to come from here instead to compile against it.
+    maven {
+        name = "RyanHCode"
+        url = "https://maven.ryanhcode.dev/releases"
+    }
 }
 
 base {
@@ -106,10 +114,18 @@ dependencies {
     compileOnly "maven.modrinth:sable:2.0.3+mc1.21.1"
     localRuntime "maven.modrinth:sable:2.0.3+mc1.21.1"
 
-    // Flywheel/Catnip back the space suit visor's baked-mesh rendering; both are bundled inside Create's own
+    // Sable's companion module (Pose3dc/SubLevelAccess ship-transform API) is jar-in-jar bundled inside the
+    // main Sable jar above rather than exposed as a normal transitive dependency, so it's resolved
+    // separately here to compile against it - version pinned to the exact copy jar-in-jar'd inside Sable
+    // 2.0.3 itself (confirmed via its jar-in-jar filename), same reasoning as Flywheel/Catnip/Ponder below.
+    compileOnly "dev.ryanhcode.sable-companion:sable-companion-common-1.21.1:1.6.0"
+
+    // Flywheel/Catnip back the space suit visor's baked-mesh rendering; Ponder backs the SmartBlockEntity
+    // base class used by the solid rocket booster's block entity. All three are bundled inside Create's own
     // jar at runtime, but need to be resolved separately here for compiling against their classes.
     compileOnly "dev.engine-room.flywheel:flywheel-neoforge-1.21.1:1.0.6-42"
     compileOnly "net.createmod.catnip:Catnip-NeoForge-1.21.1:0.8.54"
+    compileOnly "net.createmod.ponder:Ponder-NeoForge-1.21.1:1.0.69"
 
     implementation "software.bernie.geckolib:geckolib-neoforge-1.21.1:4.7.2"
 }

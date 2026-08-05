@@ -1,0 +1,17 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "equipment",
+    "pattern": [
+        "B B",
+        "A A",
+        "   "
+    ],
+    "key": {
+        "B": {"item": "create:brass_ingot"},
+        "A": {"item": "minecraft:amethyst_shard"}
+    },
+    "result": {
+        "count": 1,
+        "id": "createastronautics:brass_space_suit_boots"
+    }
+}

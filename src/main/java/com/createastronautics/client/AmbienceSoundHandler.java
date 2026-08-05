@@ -7,6 +7,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -29,6 +30,16 @@ public class AmbienceSoundHandler {
         boolean deepSpace = level.dimension() == ModDimensions.DEEP_SPACE;
         boolean moon = level.dimension() == ModDimensions.MOON;
         if (!deepSpace && !moon) {
+            return;
+        }
+
+        // Inventory/UI feedback (crafting clicks, item pickup, armor equip, eating, XP, menu sounds) isn't
+        // carried through open air the way ambient/world sounds are - it's heard directly rather than
+        // propagating across a vacuum, so it's exempt from the "no atmosphere" muffling/silencing below.
+        // MASTER is menu/UI-only sounds; PLAYERS covers the rest of that list (plus footsteps, which a
+        // suited astronaut would still feel/hear through their own boots regardless of open air).
+        SoundSource source = event.getSound().getSource();
+        if (source == SoundSource.MASTER || source == SoundSource.PLAYERS) {
             return;
         }
 

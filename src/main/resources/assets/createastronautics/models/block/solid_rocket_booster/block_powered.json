@@ -1,0 +1,9 @@
+{
+	"credit": "Made with Blockbench",
+	"parent": "createastronautics:block/solid_rocket_booster/block",
+	"textures": {
+		"7": "create:block/chute_smart_powered",
+		"8": "create:block/funnel/funnel_open",
+		"particle": "create:block/chute_smart_powered"
+	}
+}

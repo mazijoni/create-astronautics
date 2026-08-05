@@ -16,6 +16,7 @@ public class CreateAstronauticsTab {
                     .icon(() -> ModItems.BRASS_SPACE_SUIT_HELMET.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
                         output.accept(ModItems.MOON_DUST.get());
+                        output.accept(ModItems.SOLID_ROCKET_BOOSTER.get());
                         output.accept(ModItems.BRASS_SPACE_SUIT_HELMET.get());
                         output.accept(ModItems.BRASS_SPACE_SUIT_CHESTPLATE.get());
                         output.accept(ModItems.BRASS_SPACE_SUIT_LEGGINGS.get());

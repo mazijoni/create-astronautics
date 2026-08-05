@@ -15,6 +15,9 @@ public class ModItems {
     public static final DeferredItem<BlockItem> MOON_DUST = ITEMS.register("moon_dust",
             () -> new BlockItem(ModBlocks.MOON_DUST.get(), new Item.Properties()));
 
+    public static final DeferredItem<BlockItem> SOLID_ROCKET_BOOSTER = ITEMS.register("solid_rocket_booster",
+            () -> new BlockItem(ModBlocks.SOLID_ROCKET_BOOSTER.get(), new Item.Properties()));
+
     public static final DeferredItem<BrassSpaceSuitArmorItem> BRASS_SPACE_SUIT_HELMET = ITEMS.register("brass_space_suit_helmet",
             () -> new BrassSpaceSuitArmorItem(ModArmorMaterials.BRASS_SPACE_SUIT, ArmorItem.Type.HELMET, new Item.Properties().durability(ArmorItem.Type.HELMET.getDurability(15)), spaceSuitModel()));
 

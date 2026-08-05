@@ -1,0 +1,21 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+        "BSB",
+        "ARA",
+        "ICI"
+    ],
+    "key": {
+        "B": { "item": "create:brass_ingot" },
+        "C": { "item": "create:chute" },
+        "I": { "item": "create:iron_sheet" },
+        "S": { "item": "create:brass_sheet" },
+        "A": { "item": "create:andesite_alloy" },
+        "R": { "item": "minecraft:redstone" }
+    },
+    "result": {
+        "count": 1,
+        "id": "createastronautics:solid_rocket_booster"
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "variants": {
+        "facing=down,powered=false": { "model": "createastronautics:block/solid_rocket_booster/block" },
+        "facing=down,powered=true": { "model": "createastronautics:block/solid_rocket_booster/block_powered" },
+        "facing=up,powered=false": { "model": "createastronautics:block/solid_rocket_booster/block", "x": 180 },
+        "facing=up,powered=true": { "model": "createastronautics:block/solid_rocket_booster/block_powered", "x": 180 },
+        "facing=south,powered=false": { "model": "createastronautics:block/solid_rocket_booster/block", "x": 90 },
+        "facing=south,powered=true": { "model": "createastronautics:block/solid_rocket_booster/block_powered", "x": 90 },
+        "facing=north,powered=false": { "model": "createastronautics:block/solid_rocket_booster/block", "x": 90, "y": 180 },
+        "facing=north,powered=true": { "model": "createastronautics:block/solid_rocket_booster/block_powered", "x": 90, "y": 180 },
+        "facing=west,powered=false": { "model": "createastronautics:block/solid_rocket_booster/block", "x": 90, "y": 90 },
+        "facing=west,powered=true": { "model": "createastronautics:block/solid_rocket_booster/block_powered", "x": 90, "y": 90 },
+        "facing=east,powered=false": { "model": "createastronautics:block/solid_rocket_booster/block", "x": 90, "y": 270 },
+        "facing=east,powered=true": { "model": "createastronautics:block/solid_rocket_booster/block_powered", "x": 90, "y": 270 }
+    }
+}

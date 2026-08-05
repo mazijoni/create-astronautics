@@ -1,0 +1,19 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "equipment",
+    "pattern": [
+        "B B",
+        "DCD",
+        "DAD"
+    ],
+    "key": {
+        "B": {"item": "create:brass_ingot"},
+        "C": {"item": "create:copper_backtank"},
+        "A": {"item": "minecraft:amethyst_shard"},
+        "D": {"item": "create:brass_casing"}
+    },
+    "result": {
+        "count": 1,
+        "id": "createastronautics:brass_space_suit_chestplate"
+    }
+}

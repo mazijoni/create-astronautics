@@ -1,10 +1,8 @@
 package com.createastronautics.item;
 
+import com.createastronautics.client.BrassSpaceSuitVisorLayer;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
@@ -49,21 +47,22 @@ public class BrassSpaceSuitArmorItem extends ArmorItem implements GeoItem {
             @Override
             public <T extends LivingEntity> HumanoidModel<?> getGeoArmorRenderer(@Nullable T livingEntity, ItemStack itemStack, @Nullable EquipmentSlot equipmentSlot, @Nullable HumanoidModel<T> original) {
                 if (renderer == null) {
+                    // Every piece renders on the default armorCutoutNoCull RenderType - translucent
+                    // RenderTypes get deferred to the end-of-frame translucent pass, which stops them from
+                    // writing depth in time to occlude things like Essential's clothing cosmetics, and
+                    // behaves inconsistently in isolated buffer contexts like the inventory paperdoll.
+                    // Matches Northstar-Redux's SpaceSuitArmorItem, see THIRD_PARTY_NOTICES.md.
+                    GeoArmorRenderer<BrassSpaceSuitArmorItem> newRenderer = new GeoArmorRenderer<>(model.get());
+
                     if (getType() == Type.HELMET) {
                         // The helmet's own texture is a glass dome over most of its front/sides (see the
-                        // alpha channel), so only its renderer needs translucent blending. The other pieces
-                        // are fully opaque and must stay on the default armorCutoutNoCull - translucent
-                        // RenderTypes get deferred to the end-of-frame translucent pass, which stops them
-                        // from writing depth in time to occlude things like Essential's clothing cosmetics.
-                        renderer = new GeoArmorRenderer<>(model.get()) {
-                            @Override
-                            public RenderType getRenderType(BrassSpaceSuitArmorItem animatable, ResourceLocation texture, @Nullable MultiBufferSource bufferSource, float partialTick) {
-                                return RenderType.entityTranslucent(texture);
-                            }
-                        };
-                    } else {
-                        renderer = new GeoArmorRenderer<>(model.get());
+                        // alpha channel). Rather than switching the whole renderer to translucent, layer a
+                        // second translucent pass over just the opaque helmet's own armorHead bone - see
+                        // BrassSpaceSuitVisorLayer.
+                        newRenderer.addRenderLayer(new BrassSpaceSuitVisorLayer(newRenderer));
                     }
+
+                    renderer = newRenderer;
                 }
                 return renderer;
             }

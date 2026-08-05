@@ -1,0 +1,17 @@
+{
+    "textures": [
+        "createastronautics:plume/plume1",
+        "createastronautics:plume/plume2",
+        "createastronautics:plume/plume3",
+        "createastronautics:plume/plume4",
+        "createastronautics:plume/plume5",
+        "createastronautics:plume/plume6",
+        "createastronautics:smoke/big_smoke_2",
+        "createastronautics:smoke/big_smoke_3",
+        "createastronautics:smoke/big_smoke_4",
+        "createastronautics:smoke/big_smoke_5",
+        "createastronautics:smoke/big_smoke_6",
+        "createastronautics:smoke/big_smoke_7",
+        "createastronautics:smoke/big_smoke_8"
+    ]
+}

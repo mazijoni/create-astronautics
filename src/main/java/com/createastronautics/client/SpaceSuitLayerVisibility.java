@@ -31,12 +31,16 @@ public class SpaceSuitLayerVisibility {
             return;
         }
 
-        boolean helmet = isBrassSuitPiece(player.getItemBySlot(EquipmentSlot.HEAD), ModItems.BRASS_SPACE_SUIT_HELMET.get());
         boolean chestplate = isBrassSuitPiece(player.getItemBySlot(EquipmentSlot.CHEST), ModItems.BRASS_SPACE_SUIT_CHESTPLATE.get());
         boolean leggings = isBrassSuitPiece(player.getItemBySlot(EquipmentSlot.LEGS), ModItems.BRASS_SPACE_SUIT_LEGGINGS.get());
         boolean boots = isBrassSuitPiece(player.getItemBySlot(EquipmentSlot.FEET), ModItems.BRASS_SPACE_SUIT_BOOTS.get());
 
-        model.hat.visible = !helmet;
+        // Deliberately not touching model.hat here: the helmet's armorHead cube is rendered with
+        // RenderType.entityTranslucent (see BrassSpaceSuitArmorItem) over most of its front/side faces, so
+        // leaving the hat layer's own visibility alone lets it blend through the glass normally via depth
+        // test + alpha blend - the opaque back face still occludes it correctly. Force-hiding it here (as
+        // the other body layers below still need, since their suit geometry is fully opaque) would blank
+        // out hair/facial hair everywhere a helmet is worn, glass or not.
         model.jacket.visible = !chestplate;
         model.leftSleeve.visible = !chestplate;
         model.rightSleeve.visible = !chestplate;

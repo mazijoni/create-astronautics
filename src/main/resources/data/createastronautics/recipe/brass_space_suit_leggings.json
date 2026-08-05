@@ -1,0 +1,17 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "equipment",
+    "pattern": [
+        "DDD",
+        "B B",
+        "B B"
+    ],
+    "key": {
+        "B": {"item": "create:brass_ingot"},
+        "D": {"item": "create:brass_casing"}
+    },
+    "result": {
+        "count": 1,
+        "id": "createastronautics:brass_space_suit_leggings"
+    }
+}

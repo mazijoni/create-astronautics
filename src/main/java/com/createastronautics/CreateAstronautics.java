@@ -1,14 +1,19 @@
 package com.createastronautics;
 
+import com.createastronautics.block.ModBlockEntities;
 import com.createastronautics.block.ModBlocks;
 import com.createastronautics.item.ModArmorMaterials;
 import com.createastronautics.item.ModItems;
+import com.createastronautics.magnetic.ModAttachments;
+import com.createastronautics.particle.ModParticleTypes;
 import com.createastronautics.worldgen.ModDensityFunctionTypes;
 import com.createastronautics.worldgen.ModFeatures;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import org.slf4j.Logger;
 
 @Mod(CreateAstronautics.MODID)
@@ -19,9 +24,18 @@ public class CreateAstronautics {
     public CreateAstronautics(IEventBus modEventBus, ModContainer modContainer) {
         ModArmorMaterials.ARMOR_MATERIALS.register(modEventBus);
         ModBlocks.BLOCKS.register(modEventBus);
+        ModBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         ModDensityFunctionTypes.DENSITY_FUNCTION_TYPES.register(modEventBus);
         ModFeatures.FEATURES.register(modEventBus);
+        ModParticleTypes.PARTICLE_TYPES.register(modEventBus);
+        ModAttachments.ATTACHMENT_TYPES.register(modEventBus);
         CreateAstronauticsTab.CREATIVE_MODE_TABS.register(modEventBus);
+        modEventBus.addListener(this::registerCapabilities);
+    }
+
+    private void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.SOLID_ROCKET_BOOSTER.get(),
+                (blockEntity, side) -> blockEntity.getFuelHandler(side));
     }
 }
