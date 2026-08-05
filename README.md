@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.png" alt="Create Astronautics" width="600">
+  <img src="https://github.com/mazijoni/create-astronautics/blob/HEAD/docs/logo.png?raw=true" alt="Create Astronautics" width="600">
 </p>
 
 # Create Astronautics
