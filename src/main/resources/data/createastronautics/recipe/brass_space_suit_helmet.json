@@ -3,12 +3,13 @@
     "category": "equipment",
     "pattern": [
         "AAA",
-        "B B",
-        "   "
+        "A A",
+        "BCB"
     ],
     "key": {
         "B": {"item": "create:brass_ingot"},
-        "A": {"item": "minecraft:amethyst_shard"}
+        "A": {"item": "minecraft:amethyst_shard"},
+        "C": {"item": "create:brass_casing"}
     },
     "result": {
         "count": 1,

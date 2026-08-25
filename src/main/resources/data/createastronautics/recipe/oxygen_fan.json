@@ -1,0 +1,19 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+        " P ",
+        " IC",
+        " S "
+    ],
+    "key": {
+        "S": {"item": "create:shaft"},
+        "I": {"item": "create:industrial_iron_block"},
+        "C": {"item": "create:fluid_pipe"},
+        "P": {"item": "create:propeller"}
+    },
+    "result": {
+        "count": 1,
+        "id": "createastronautics:oxygen_fan"
+    }
+}

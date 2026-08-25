@@ -1,0 +1,30 @@
+{
+    "variants": {
+        "facing=down": {
+            "model": "createastronautics:block/oxygen_fan/block",
+            "x": 180
+        },
+        "facing=east": {
+            "model": "createastronautics:block/oxygen_fan/block",
+            "x": 90,
+            "y": 90
+        },
+        "facing=north": {
+            "model": "createastronautics:block/oxygen_fan/block",
+            "x": 90
+        },
+        "facing=south": {
+            "model": "createastronautics:block/oxygen_fan/block",
+            "x": 90,
+            "y": 180
+        },
+        "facing=up": {
+            "model": "createastronautics:block/oxygen_fan/block"
+        },
+        "facing=west": {
+            "model": "createastronautics:block/oxygen_fan/block",
+            "x": 90,
+            "y": 270
+        }
+    }
+}

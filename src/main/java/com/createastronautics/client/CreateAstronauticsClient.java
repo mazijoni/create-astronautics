@@ -7,8 +7,10 @@ import com.createastronautics.client.particle.RocketPlumeParticle;
 import com.createastronautics.client.sky.DeepSpaceSpecialEffects;
 import com.createastronautics.client.sky.MoonSpecialEffects;
 import com.createastronautics.client.sky.RealisticOverworldEffects;
+import com.createastronautics.fluid.ModFluidTypes;
 import com.createastronautics.particle.ModParticleTypes;
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
+import dev.engine_room.flywheel.lib.visualization.SimpleBlockEntityVisualizer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
@@ -20,8 +22,11 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
 @Mod(value = CreateAstronautics.MODID, dist = Dist.CLIENT)
 public class CreateAstronauticsClient {
@@ -31,6 +36,8 @@ public class CreateAstronauticsClient {
         modEventBus.addListener(this::registerParticleProviders);
         modEventBus.addListener(this::registerKeyMappings);
         modEventBus.addListener(this::clientSetup);
+        modEventBus.addListener(this::registerClientExtensions);
+        modEventBus.addListener(this::registerGuiLayers);
     }
 
     private void registerDimensionSpecialEffects(RegisterDimensionSpecialEffectsEvent event) {
@@ -43,6 +50,7 @@ public class CreateAstronauticsClient {
 
     private void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.SOLID_ROCKET_BOOSTER.get(), SmartBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.OXYGEN_FAN.get(), OxygenFanRenderer::new);
     }
 
     private void registerParticleProviders(RegisterParticleProvidersEvent event) {
@@ -56,6 +64,36 @@ public class CreateAstronauticsClient {
     private void clientSetup(FMLClientSetupEvent event) {
         // Matches Create's own smart chute: its model has cutout gaps in the texture that need to render
         // as transparent instead of solid black.
-        event.enqueueWork(() -> ItemBlockRenderTypes.setRenderLayer(ModBlocks.SOLID_ROCKET_BOOSTER.get(), ChunkRenderTypeSet.of(RenderType.cutoutMipped())));
+        event.enqueueWork(() -> {
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.SOLID_ROCKET_BOOSTER.get(), ChunkRenderTypeSet.of(RenderType.cutoutMipped()));
+            // The fan blade/lattice geometry has cutout gaps, same reasoning as the smart chute above.
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.OXYGEN_FAN.get(), ChunkRenderTypeSet.of(RenderType.cutoutMipped()));
+            // Registers the Flywheel-backed render path for the spinning shaft/propeller - without this,
+            // the block silently renders as a bare casing whenever Flywheel visualization is active, since
+            // OxygenFanRenderer (the classic BlockEntityRenderer) intentionally defers to this instead.
+            SimpleBlockEntityVisualizer.builder(ModBlockEntities.OXYGEN_FAN.get())
+                    .factory(OxygenFanVisual::new)
+                    .apply();
+        });
+    }
+
+    private void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        ResourceLocation still = ResourceLocation.fromNamespaceAndPath(CreateAstronautics.MODID, "fluid/oxygen_still");
+        ResourceLocation flowing = ResourceLocation.fromNamespaceAndPath(CreateAstronautics.MODID, "fluid/oxygen_flow");
+        event.registerFluidType(new IClientFluidTypeExtensions() {
+            @Override
+            public ResourceLocation getStillTexture() {
+                return still;
+            }
+
+            @Override
+            public ResourceLocation getFlowingTexture() {
+                return flowing;
+            }
+        }, ModFluidTypes.OXYGEN.get());
+    }
+
+    private void registerGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerAboveAll(ResourceLocation.fromNamespaceAndPath(CreateAstronautics.MODID, "oxygen_timer"), OxygenTimerOverlay.INSTANCE);
     }
 }

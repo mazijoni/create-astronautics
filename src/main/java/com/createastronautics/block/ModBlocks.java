@@ -26,4 +26,12 @@ public class ModBlocks {
                     .noOcclusion()
                     .isSuffocating((state, level, pos) -> false)
                     .isRedstoneConductor((state, level, pos) -> false)));
+
+    // Matches Create's own encased_fan block properties (stone-tier, podzol map color).
+    public static final DeferredBlock<OxygenFanBlock> OXYGEN_FAN = BLOCKS.register("oxygen_fan",
+            () -> new OxygenFanBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.PODZOL)
+                    .sound(SoundType.STONE)
+                    .strength(1.25F, 4.2F)
+                    .requiresCorrectToolForDrops()));
 }

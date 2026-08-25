@@ -1,5 +1,6 @@
 package com.createastronautics.block;
 
+import com.createastronautics.config.Config;
 import com.createastronautics.particle.ModParticleTypes;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
@@ -38,9 +39,6 @@ import java.util.Locale;
  */
 public class SolidRocketBoosterBlockEntity extends SmartBlockEntity
         implements IHaveGoggleInformation, BlockEntitySubLevelPropellerActor, BlockEntityPropeller {
-    // No public reference exists for how Sable force units relate to ship mass, so this is a starting
-    // point to be tuned by playtesting rather than a calibrated figure.
-    private static final double BASE_THRUST = 12.0;
     private static final int ADJACENT_PULL_INTERVAL = 8; // matches vanilla hopper's own cooldown
     private static final int OBSTRUCTION_SCAN_INTERVAL = 10;
     private static final int OBSTRUCTION_SCAN_LENGTH = 5; // blocks of clearance in front of the nozzle for 100% efficiency
@@ -407,12 +405,12 @@ public class SolidRocketBoosterBlockEntity extends SmartBlockEntity
 
     @Override
     public double getAirflow() {
-        return isActive() ? BASE_THRUST * efficiency : 0.0;
+        return isActive() ? Config.SOLID_ROCKET_BOOSTER_THRUST.get() * efficiency : 0.0;
     }
 
     @Override
     public double getThrust() {
-        return isActive() ? BASE_THRUST * efficiency : 0.0;
+        return isActive() ? Config.SOLID_ROCKET_BOOSTER_THRUST.get() * efficiency : 0.0;
     }
 
     @Override

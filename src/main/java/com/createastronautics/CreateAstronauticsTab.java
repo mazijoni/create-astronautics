@@ -21,6 +21,8 @@ public class CreateAstronauticsTab {
                         output.accept(ModItems.BRASS_SPACE_SUIT_CHESTPLATE.get());
                         output.accept(ModItems.BRASS_SPACE_SUIT_LEGGINGS.get());
                         output.accept(ModItems.BRASS_SPACE_SUIT_BOOTS.get());
+                        output.accept(ModItems.OXYGEN_BUCKET.get());
+                        output.accept(ModItems.OXYGEN_FAN.get());
                     })
                     .build());
 }

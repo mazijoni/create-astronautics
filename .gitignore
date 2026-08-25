@@ -3,6 +3,7 @@
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/**/build/
+.temp/
 
 ### IntelliJ IDEA ###
 .idea/
