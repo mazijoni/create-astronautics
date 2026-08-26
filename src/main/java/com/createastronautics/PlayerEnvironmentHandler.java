@@ -1,8 +1,12 @@
 package com.createastronautics;
 
+import com.createastronautics.block.ModBlocks;
+import com.createastronautics.block.OxygenRoomTracker;
 import com.createastronautics.fluid.ModDataComponents;
 import com.createastronautics.item.ModItems;
 import com.createastronautics.magnetic.MagneticBootsNetworkHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -13,6 +17,12 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.AbstractCandleBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.WallTorchBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingBreatheEvent;
@@ -28,6 +38,15 @@ import net.neoforged.neoforge.fluids.SimpleFluidContent;
  * no sense in a vacuum) unless the player is wearing the complete space suit AND its chestplate still has
  * oxygen in its tank - the tank drains while both of those conditions hold (see {@link #onPlayerTick}), at
  * a fixed rate of 1 bucket per 5 real-time minutes, independent of the tank's capacity.
+ *
+ * It also handles the vacuum's effect on fire and open liquids (see {@link #extinguishNearby}): water
+ * flash-freezes into ice, lava cools into obsidian, open flame is snuffed out instantly, and regular
+ * torches burn out - soul torches, campfires, and candles keep going, on the theory that they don't need
+ * ambient air the way an open flame or a burning splinter does.
+ *
+ * All of that is suspended for a player standing inside a sealed room an oxygen fan is supplying - see
+ * {@link OxygenRoomTracker} - since that's meant to be a real breathable pocket of air: no suffocation, no
+ * suit oxygen drain, and nothing in it freezes or burns out.
  */
 @EventBusSubscriber(modid = CreateAstronautics.MODID)
 public class PlayerEnvironmentHandler {
@@ -52,6 +71,13 @@ public class PlayerEnvironmentHandler {
     private static final int OXYGEN_DRAIN_INTERVAL_TICKS = 6;
     private static final int OXYGEN_DRAIN_AMOUNT_MB = 1;
 
+    // Extinguishing/freezing is swept near each player rather than across the whole level, since there's no
+    // cheap way to enumerate every fire/water/lava/torch position in loaded chunks - this bounds the cost to
+    // a modest volume, checked a few times a second rather than every tick.
+    private static final int EXTINGUISH_INTERVAL_TICKS = 10;
+    private static final int EXTINGUISH_HORIZONTAL_RADIUS = 12;
+    private static final int EXTINGUISH_VERTICAL_RADIUS = 8;
+
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
@@ -67,6 +93,7 @@ public class PlayerEnvironmentHandler {
 
         boolean noAtmosphere = gravityFactorFor(player.level().dimension()) != null;
         if (noAtmosphere && isWearingFullSpaceSuit(player) && !player.isCreative() && !player.isSpectator()
+                && !OxygenRoomTracker.isOxygenated(player, player.level().getGameTime())
                 && player.tickCount % OXYGEN_DRAIN_INTERVAL_TICKS == 0) {
             drainOxygen(player, OXYGEN_DRAIN_AMOUNT_MB);
         }
@@ -103,6 +130,61 @@ public class PlayerEnvironmentHandler {
         // cycled back around. Pinning the clear-weather timer back up every single tick, unconditionally,
         // means it can never reach zero in the first place.
         level.setWeatherParameters(1_000_000, 0, false, false);
+        extinguishNearby(level);
+    }
+
+    /**
+     * Sweeps a box around each player for anything the vacuum wouldn't allow: open flame and regular
+     * torches are snuffed out (torches leave behind {@link ModBlocks#BURNT_TORCH}/{@code BURNT_WALL_TORCH}
+     * rather than just vanishing), regular campfires and candles are blown out (just flipped unlit, same as
+     * vanilla's own "put out with water/shovel" behaviour - the block stays, only the flame/light/particles
+     * stop), and standing water/lava flash-freezes/cools since there's nothing to hold it as a liquid. Soul
+     * torches and soul campfires are left alone, on the theory that soul fire doesn't need ambient air the
+     * way a normal flame does.
+     */
+    private static void extinguishNearby(ServerLevel level) {
+        if (level.getGameTime() % EXTINGUISH_INTERVAL_TICKS != 0) {
+            return;
+        }
+
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        for (Player player : level.players()) {
+            if (OxygenRoomTracker.isOxygenated(player, level.getGameTime())) {
+                continue;
+            }
+
+            BlockPos center = player.blockPosition();
+            for (int dx = -EXTINGUISH_HORIZONTAL_RADIUS; dx <= EXTINGUISH_HORIZONTAL_RADIUS; dx++) {
+                for (int dy = -EXTINGUISH_VERTICAL_RADIUS; dy <= EXTINGUISH_VERTICAL_RADIUS; dy++) {
+                    for (int dz = -EXTINGUISH_HORIZONTAL_RADIUS; dz <= EXTINGUISH_HORIZONTAL_RADIUS; dz++) {
+                        pos.setWithOffset(center, dx, dy, dz);
+                        extinguishIfNeeded(level, pos);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void extinguishIfNeeded(ServerLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        Block block = state.getBlock();
+
+        if (block == Blocks.FIRE) {
+            level.removeBlock(pos, false);
+        } else if (block == Blocks.TORCH) {
+            level.setBlock(pos, ModBlocks.BURNT_TORCH.get().defaultBlockState(), Block.UPDATE_ALL);
+        } else if (block == Blocks.WALL_TORCH) {
+            Direction facing = state.getValue(WallTorchBlock.FACING);
+            level.setBlock(pos, ModBlocks.BURNT_WALL_TORCH.get().defaultBlockState().setValue(WallTorchBlock.FACING, facing), Block.UPDATE_ALL);
+        } else if (block == Blocks.WATER) {
+            level.setBlock(pos, Blocks.ICE.defaultBlockState(), Block.UPDATE_ALL);
+        } else if (block == Blocks.LAVA) {
+            level.setBlock(pos, Blocks.OBSIDIAN.defaultBlockState(), Block.UPDATE_ALL);
+        } else if (block == Blocks.CAMPFIRE && state.getValue(BlockStateProperties.LIT)) {
+            level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), Block.UPDATE_ALL);
+        } else if (block instanceof AbstractCandleBlock && state.getValue(BlockStateProperties.LIT)) {
+            level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), Block.UPDATE_ALL);
+        }
     }
 
     private static void applyOrClear(AttributeInstance attribute, ResourceLocation modifierId, Double factor) {
@@ -129,7 +211,8 @@ public class PlayerEnvironmentHandler {
         }
 
         boolean noAtmosphere = gravityFactorFor(player.level().dimension()) != null;
-        if (noAtmosphere && !(isWearingFullSpaceSuit(player) && hasOxygenRemaining(player))) {
+        if (noAtmosphere && !(isWearingFullSpaceSuit(player) && hasOxygenRemaining(player))
+                && !OxygenRoomTracker.isOxygenated(player, player.level().getGameTime())) {
             event.setCanBreathe(false);
         }
     }

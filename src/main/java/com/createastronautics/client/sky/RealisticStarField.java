@@ -38,7 +38,11 @@ public final class RealisticStarField {
 
         FogRenderer.setupNoFog();
         RenderSystem.enableBlend();
-        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+        // Additive, matching vanilla's own star blend function exactly (LevelRenderer#renderSky) - a plain
+        // alpha blend (ONE_MINUS_SRC_ALPHA) instead darkens whatever's behind each star's semi-transparent
+        // edge pixels, which is what a shader pack's sky compositing was picking up as a darker/flickering
+        // sky, since it composites against that destination factor rather than just adding light to it.
+        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
         RenderSystem.depthMask(false);
         RenderSystem.setShader(GameRenderer::getPositionShader);
 

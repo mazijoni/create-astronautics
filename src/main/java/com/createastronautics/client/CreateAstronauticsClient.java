@@ -68,6 +68,10 @@ public class CreateAstronauticsClient {
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.SOLID_ROCKET_BOOSTER.get(), ChunkRenderTypeSet.of(RenderType.cutoutMipped()));
             // The fan blade/lattice geometry has cutout gaps, same reasoning as the smart chute above.
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.OXYGEN_FAN.get(), ChunkRenderTypeSet.of(RenderType.cutoutMipped()));
+            // Matches vanilla's own torch registration (ItemBlockRenderTypes) - without this the model's
+            // transparent background renders as solid black instead of see-through.
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.BURNT_TORCH.get(), ChunkRenderTypeSet.of(RenderType.cutout()));
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.BURNT_WALL_TORCH.get(), ChunkRenderTypeSet.of(RenderType.cutout()));
             // Registers the Flywheel-backed render path for the spinning shaft/propeller - without this,
             // the block silently renders as a bare casing whenever Flywheel visualization is active, since
             // OxygenFanRenderer (the classic BlockEntityRenderer) intentionally defers to this instead.

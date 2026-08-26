@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="https://github.com/mazijoni/create-astronautics/blob/HEAD/docs/logo.png?raw=true" alt="Create Astronautics" width="600">
-</p>
+![alt text](temp/austronautics.png)
 
 # Create Astronautics
 

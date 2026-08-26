@@ -4,10 +4,12 @@ import com.createastronautics.CreateAstronautics;
 import com.createastronautics.block.ModBlocks;
 import com.createastronautics.fluid.ModFluids;
 import com.createastronautics.fluid.OxygenBucketItem;
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.StandingAndWallBlockItem;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import software.bernie.geckolib.model.GeoModel;
@@ -23,6 +25,11 @@ public class ModItems {
 
     public static final DeferredItem<BlockItem> OXYGEN_FAN = ITEMS.register("oxygen_fan",
             () -> new BlockItem(ModBlocks.OXYGEN_FAN.get(), new Item.Properties()));
+
+    // Matches vanilla's own torch item registration: attaches to the underside of a block by default,
+    // falling back to a wall mount.
+    public static final DeferredItem<StandingAndWallBlockItem> BURNT_TORCH = ITEMS.register("burnt_torch",
+            () -> new StandingAndWallBlockItem(ModBlocks.BURNT_TORCH.get(), ModBlocks.BURNT_WALL_TORCH.get(), new Item.Properties(), Direction.DOWN));
 
     public static final DeferredItem<OxygenBucketItem> OXYGEN_BUCKET = ITEMS.register("oxygen_bucket",
             () -> new OxygenBucketItem(ModFluids.OXYGEN.get(), new Item.Properties()

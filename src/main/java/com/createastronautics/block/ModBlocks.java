@@ -4,6 +4,7 @@ import com.createastronautics.CreateAstronautics;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -34,4 +35,16 @@ public class ModBlocks {
                     .sound(SoundType.STONE)
                     .strength(1.25F, 4.2F)
                     .requiresCorrectToolForDrops()));
+
+    // Same properties as vanilla's own torch, minus the light level - it's burnt out.
+    public static final DeferredBlock<BurntTorchBlock> BURNT_TORCH = BLOCKS.register("burnt_torch",
+            () -> new BurntTorchBlock(BlockBehaviour.Properties.of()
+                    .noCollission()
+                    .instabreak()
+                    .sound(SoundType.WOOD)
+                    .pushReaction(PushReaction.DESTROY)));
+
+    public static final DeferredBlock<BurntWallTorchBlock> BURNT_WALL_TORCH = BLOCKS.register("burnt_wall_torch",
+            () -> new BurntWallTorchBlock(BlockBehaviour.Properties.ofFullCopy(BURNT_TORCH.get())
+                    .dropsLike(BURNT_TORCH.get())));
 }

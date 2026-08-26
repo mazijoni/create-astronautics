@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=east": { "model": "createastronautics:block/burnt_wall_torch" },
+        "facing=north": { "model": "createastronautics:block/burnt_wall_torch", "y": 270 },
+        "facing=south": { "model": "createastronautics:block/burnt_wall_torch", "y": 90 },
+        "facing=west": { "model": "createastronautics:block/burnt_wall_torch", "y": 180 }
+    }
+}

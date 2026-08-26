@@ -23,6 +23,7 @@ public class CreateAstronauticsTab {
                         output.accept(ModItems.BRASS_SPACE_SUIT_BOOTS.get());
                         output.accept(ModItems.OXYGEN_BUCKET.get());
                         output.accept(ModItems.OXYGEN_FAN.get());
+                        output.accept(ModItems.BURNT_TORCH.get());
                     })
                     .build());
 }

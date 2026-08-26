@@ -11,6 +11,8 @@
     "fluid_type.createastronautics.oxygen": "Oxygen",
     "block.createastronautics.oxygen_fan": "Oxygen Fan",
     "item.createastronautics.oxygen_fan": "Oxygen Fan",
+    "block.createastronautics.burnt_torch": "Burnt Torch",
+    "item.createastronautics.burnt_torch": "Burnt Torch",
     "gui.goggles.solid_rocket_booster.title": "Booster Stats:",
     "gui.goggles.solid_rocket_booster.status": "Status",
     "gui.goggles.solid_rocket_booster.status.working": "Working",
