@@ -2,7 +2,7 @@
 
 # Create Astronautics
 
-A space exploration addon for [Create](https://www.curseforge.com/minecraft/mc-mods/create), built on top of Create Aeronautics and Sable. The goal is to take the contraption-building of Create off the ground and out past the atmosphere: fly through the sky with Create Aeronautics, then push further into orbit, to the Moon, and beyond using rockets and spacecraft built from Create machinery.
+A space exploration addon for [Create](https://modrinth.com/mod/create), built on top of Create Aeronautics and Sable. The goal is to take the contraption-building of Create off the ground and out past the atmosphere: fly through the sky with Create Aeronautics, then push further into orbit, to the Moon, and beyond using rockets and spacecraft built from Create machinery.
 
 ## Vision
 

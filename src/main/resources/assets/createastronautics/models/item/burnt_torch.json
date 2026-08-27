@@ -1,3 +1,6 @@
 {
-    "parent": "createastronautics:block/burnt_torch"
+    "parent": "minecraft:item/generated",
+    "textures": {
+        "layer0": "createastronautics:block/burnt_torch"
+    }
 }

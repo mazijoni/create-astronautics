@@ -12,4 +12,7 @@ public class ModParticleTypes {
 
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> ROCKET_PLUME = PARTICLE_TYPES.register("rocket_plume",
             () -> new SimpleParticleType(false));
+
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> OXYGEN_MIST = PARTICLE_TYPES.register("oxygen_mist",
+            () -> new SimpleParticleType(false));
 }

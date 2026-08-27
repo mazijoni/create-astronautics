@@ -24,6 +24,7 @@
     "gui.goggles.solid_rocket_booster.fuel_label": "Solid Fuel",
     "gui.goggles.solid_rocket_booster.burn_time": " burn time",
     "itemGroup.createastronautics": "Create Astronautics",
+    "itemGroup.createastronautics.astronautics": "Astronautics",
     "key.categories.createastronautics": "Create Astronautics",
     "key.createastronautics.toggle_magnetic_boots": "Toggle Magnetic Boots",
     "hud.createastronautics.magnetic_boots.on": "Magnet: ON",

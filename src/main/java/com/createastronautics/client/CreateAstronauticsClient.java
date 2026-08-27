@@ -3,6 +3,7 @@ package com.createastronautics.client;
 import com.createastronautics.CreateAstronautics;
 import com.createastronautics.block.ModBlockEntities;
 import com.createastronautics.block.ModBlocks;
+import com.createastronautics.client.particle.OxygenMistParticle;
 import com.createastronautics.client.particle.RocketPlumeParticle;
 import com.createastronautics.client.sky.DeepSpaceSpecialEffects;
 import com.createastronautics.client.sky.MoonSpecialEffects;
@@ -55,6 +56,7 @@ public class CreateAstronauticsClient {
 
     private void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ModParticleTypes.ROCKET_PLUME.get(), RocketPlumeParticle.Factory::new);
+        event.registerSpriteSet(ModParticleTypes.OXYGEN_MIST.get(), OxygenMistParticle.Factory::new);
     }
 
     private void registerKeyMappings(RegisterKeyMappingsEvent event) {

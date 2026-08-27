@@ -1,7 +1,7 @@
 package com.createastronautics;
 
 import com.createastronautics.block.ModBlocks;
-import com.createastronautics.block.OxygenRoomTracker;
+import com.createastronautics.block.OxygenFanRegistry;
 import com.createastronautics.fluid.ModDataComponents;
 import com.createastronautics.item.ModItems;
 import com.createastronautics.magnetic.MagneticBootsNetworkHandler;
@@ -10,7 +10,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -25,6 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingBreatheEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDrownEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
@@ -42,11 +46,14 @@ import net.neoforged.neoforge.fluids.SimpleFluidContent;
  * It also handles the vacuum's effect on fire and open liquids (see {@link #extinguishNearby}): water
  * flash-freezes into ice, lava cools into obsidian, open flame is snuffed out instantly, and regular
  * torches burn out - soul torches, campfires, and candles keep going, on the theory that they don't need
- * ambient air the way an open flame or a burning splinter does.
+ * ambient air the way an open flame or a burning splinter does. A fire-extinguishing sound plays once per
+ * player per sweep if anything actually went out, rather than once per block - a single sweep can catch
+ * several torches/campfires at once.
  *
- * All of that is suspended for a player standing inside a sealed room an oxygen fan is supplying - see
- * {@link OxygenRoomTracker} - since that's meant to be a real breathable pocket of air: no suffocation, no
- * suit oxygen drain, and nothing in it freezes or burns out.
+ * All of that is suspended for a player standing inside a sealed room an oxygen fan is supplying - checked
+ * live against the player's actual current position via {@link OxygenFanRegistry} (no per-player caching,
+ * so it's correct instantly and for any number of players) - since that's meant to be a real breathable
+ * pocket of air: no suffocation, no suit oxygen drain, and nothing in it freezes or burns out.
  */
 @EventBusSubscriber(modid = CreateAstronautics.MODID)
 public class PlayerEnvironmentHandler {
@@ -93,7 +100,7 @@ public class PlayerEnvironmentHandler {
 
         boolean noAtmosphere = gravityFactorFor(player.level().dimension()) != null;
         if (noAtmosphere && isWearingFullSpaceSuit(player) && !player.isCreative() && !player.isSpectator()
-                && !OxygenRoomTracker.isOxygenated(player, player.level().getGameTime())
+                && !OxygenFanRegistry.isOxygenated(player.level(), player.blockPosition())
                 && player.tickCount % OXYGEN_DRAIN_INTERVAL_TICKS == 0) {
             drainOxygen(player, OXYGEN_DRAIN_AMOUNT_MB);
         }
@@ -122,15 +129,32 @@ public class PlayerEnvironmentHandler {
             return;
         }
 
-        // There's no atmosphere for weather to happen in. Vanilla still advances the weather cycle for any
-        // dimension with skylight (ServerLevel#advanceWeatherCycle only gates on that, nothing else) and
-        // decrements clearWeatherTime toward zero every tick regardless of what we do - reacting only once
-        // rain/thunder had already flipped on left a real gap where it could start before we caught it, and
-        // depending on whatever clearWeatherTime a save already had, might not get caught at all until it
-        // cycled back around. Pinning the clear-weather timer back up every single tick, unconditionally,
-        // means it can never reach zero in the first place.
-        level.setWeatherParameters(1_000_000, 0, false, false);
         extinguishNearby(level);
+    }
+
+    /**
+     * There's no atmosphere for weather to happen in - but rain/thunder isn't actually per-dimension state
+     * to begin with: every non-Overworld level's weather data is a {@code DerivedLevelData} that reads
+     * straight through to the Overworld's (see {@code ServerLevel#serverLevelData}), and every one of its
+     * setters (raining, thundering, the timers, {@code ServerLevel#setWeatherParameters}, all of it) is a
+     * silent no-op. So {@code isRaining()}/{@code isThundering()} always report exactly the Overworld's
+     * current weather on the Moon and in Deep Space too, and there's no way to independently clear that -
+     * every actual weather effect has to be blocked some other way instead:
+     * <ul>
+     *     <li>The falling-snow/rain visual ({@code LevelRenderer#renderSnowAndRain}/{@code tickRain}) gates
+     *     per-position on {@code Biome#hasPrecipitation}, which the Moon and Deep Space biomes set false.</li>
+     *     <li>Snow/ice actually forming on the ground ({@code ServerLevel#tickPrecipitation}) ignores
+     *     {@code hasPrecipitation} entirely and only checks {@code Biome#shouldSnow}/{@code shouldFreeze} -
+     *     "cold enough" (Mojira MC-248212, a real vanilla gap) - so the Moon's biome temperature is raised
+     *     just past that threshold instead, same as Deep Space's already-warm {@code minecraft:the_void}.</li>
+     *     <li>Lightning has no biome gate at all (real deserts get struck too), so it's cancelled here.</li>
+     * </ul>
+     */
+    @SubscribeEvent
+    public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
+        if (event.getEntity() instanceof LightningBolt && gravityFactorFor(event.getLevel().dimension()) != null) {
+            event.setCanceled(true);
+        }
     }
 
     /**
@@ -149,42 +173,62 @@ public class PlayerEnvironmentHandler {
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (Player player : level.players()) {
-            if (OxygenRoomTracker.isOxygenated(player, level.getGameTime())) {
-                continue;
-            }
-
             BlockPos center = player.blockPosition();
+            boolean extinguishedAnything = false;
+
             for (int dx = -EXTINGUISH_HORIZONTAL_RADIUS; dx <= EXTINGUISH_HORIZONTAL_RADIUS; dx++) {
                 for (int dy = -EXTINGUISH_VERTICAL_RADIUS; dy <= EXTINGUISH_VERTICAL_RADIUS; dy++) {
                     for (int dz = -EXTINGUISH_HORIZONTAL_RADIUS; dz <= EXTINGUISH_HORIZONTAL_RADIUS; dz++) {
                         pos.setWithOffset(center, dx, dy, dz);
-                        extinguishIfNeeded(level, pos);
+                        // Checked per swept position, not just the player's own - otherwise stepping just
+                        // outside a sealed room re-enables the sweep and its wide radius reaches straight
+                        // back into the still-oxygenated room behind them.
+                        if (OxygenFanRegistry.isOxygenated(level, pos)) {
+                            continue;
+                        }
+                        if (extinguishIfNeeded(level, pos)) {
+                            extinguishedAnything = true;
+                        }
                     }
                 }
+            }
+
+            // One sound per player per sweep rather than one per extinguished block - a sweep can catch
+            // several torches/campfires at once (e.g. the moment someone first steps into a vacuum area),
+            // and playing a separate sound for each would spam the same way multiple fans announcing the
+            // same seal break did.
+            if (extinguishedAnything) {
+                level.playSound(null, center, SoundEvents.FIRE_EXTINGUISH, SoundSource.AMBIENT, 1.0F, 1.0F);
             }
         }
     }
 
-    private static void extinguishIfNeeded(ServerLevel level, BlockPos pos) {
+    private static boolean extinguishIfNeeded(ServerLevel level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
         Block block = state.getBlock();
 
         if (block == Blocks.FIRE) {
             level.removeBlock(pos, false);
+            return true;
         } else if (block == Blocks.TORCH) {
             level.setBlock(pos, ModBlocks.BURNT_TORCH.get().defaultBlockState(), Block.UPDATE_ALL);
+            return true;
         } else if (block == Blocks.WALL_TORCH) {
             Direction facing = state.getValue(WallTorchBlock.FACING);
             level.setBlock(pos, ModBlocks.BURNT_WALL_TORCH.get().defaultBlockState().setValue(WallTorchBlock.FACING, facing), Block.UPDATE_ALL);
+            return true;
+        } else if (block == Blocks.CAMPFIRE && state.getValue(BlockStateProperties.LIT)) {
+            level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), Block.UPDATE_ALL);
+            return true;
+        } else if (block instanceof AbstractCandleBlock && state.getValue(BlockStateProperties.LIT)) {
+            level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), Block.UPDATE_ALL);
+            return true;
         } else if (block == Blocks.WATER) {
             level.setBlock(pos, Blocks.ICE.defaultBlockState(), Block.UPDATE_ALL);
         } else if (block == Blocks.LAVA) {
             level.setBlock(pos, Blocks.OBSIDIAN.defaultBlockState(), Block.UPDATE_ALL);
-        } else if (block == Blocks.CAMPFIRE && state.getValue(BlockStateProperties.LIT)) {
-            level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), Block.UPDATE_ALL);
-        } else if (block instanceof AbstractCandleBlock && state.getValue(BlockStateProperties.LIT)) {
-            level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), Block.UPDATE_ALL);
         }
+        return false;
     }
 
     private static void applyOrClear(AttributeInstance attribute, ResourceLocation modifierId, Double factor) {
@@ -212,7 +256,7 @@ public class PlayerEnvironmentHandler {
 
         boolean noAtmosphere = gravityFactorFor(player.level().dimension()) != null;
         if (noAtmosphere && !(isWearingFullSpaceSuit(player) && hasOxygenRemaining(player))
-                && !OxygenRoomTracker.isOxygenated(player, player.level().getGameTime())) {
+                && !OxygenFanRegistry.isOxygenated(player.level(), BlockPos.containing(player.getEyePosition()))) {
             event.setCanBreathe(false);
         }
     }

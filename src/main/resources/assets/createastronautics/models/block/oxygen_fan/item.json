@@ -3,7 +3,7 @@
 	"parent": "block/block",
 	"textures": {
 		"gearbox": "createastronautics:block/oxygen_fan/gearbox",
-		"andesite_funnel_frame": "createastronautics:block/oxygen_fan/andesite_funnel_frame",
+		"andesite_funnel_frame": "createastronautics:block/oxygen_fan/andesite_funnel_frame_ccw",
 		"fan_casing": "createastronautics:block/oxygen_fan/fan_casing",
 		"fan_side": "createastronautics:block/oxygen_fan/fan_side",
 		"fan_blades": "create:block/fan_blades",
