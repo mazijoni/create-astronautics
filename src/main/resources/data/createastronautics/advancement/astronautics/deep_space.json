@@ -1,0 +1,28 @@
+{
+    "parent": "createastronautics:astronautics/root",
+    "criteria": {
+        "entered_deep_space": {
+            "trigger": "minecraft:changed_dimension",
+            "conditions": {
+                "to": "astronautics:deep_space"
+            }
+        }
+    },
+    "display": {
+        "description": {
+            "translate": "advancements.createastronautics.deep_space.description"
+        },
+        "icon": {
+            "count": 1,
+            "id": "createastronautics:brass_space_suit_helmet"
+        },
+        "title": {
+            "translate": "advancements.createastronautics.deep_space.title"
+        }
+    },
+    "requirements": [
+        [
+            "entered_deep_space"
+        ]
+    ]
+}

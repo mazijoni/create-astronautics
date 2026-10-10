@@ -9,7 +9,7 @@ public class Config {
     // to be adjusted by playtesting rather than a calibrated figure.
     public static final ModConfigSpec.DoubleValue SOLID_ROCKET_BOOSTER_THRUST = BUILDER
             .comment("Thrust applied to a Sable ship by a fully-fueled, unobstructed Solid Rocket Booster.")
-            .defineInRange("solidRocketBoosterThrust", 70.0, 0.0, Double.MAX_VALUE);
+            .defineInRange("solidRocketBoosterThrust", 700.0, 0.0, Double.MAX_VALUE);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 }

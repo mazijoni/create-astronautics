@@ -30,6 +30,7 @@ public class OxygenTimerOverlay implements LayeredDraw.Layer {
     private static final int HOTBAR_HALF_WIDTH = 91;
     private static final int HOTBAR_HEIGHT = 22;
     private static final int GAP_BESIDE_HOTBAR = 4;
+    private static final float RIGHT_OFFSET = 2.5F;
     // Nudges just the text off dead-center within the bar - the bar texture itself is untouched.
     private static final int TEXT_OFFSET_X = 2;
     private static final int TEXT_OFFSET_Y = 2;
@@ -69,6 +70,10 @@ public class OxygenTimerOverlay implements LayeredDraw.Layer {
         Font font = minecraft.font;
         int textX = barX + (BAR_WIDTH - font.width(text)) / 2 + TEXT_OFFSET_X;
         int textY = barY + (BAR_HEIGHT - font.lineHeight) / 2 + TEXT_OFFSET_Y;
+
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(RIGHT_OFFSET, 0, 0);
         guiGraphics.drawString(font, text, textX, textY, totalSeconds <= WARNING_THRESHOLD_SECONDS ? WARNING_COLOR : NORMAL_COLOR);
+        guiGraphics.pose().popPose();
     }
 }

@@ -2,6 +2,12 @@ modLoader="javafml" #mandatory
 loaderVersion="${loader_version_range}" #mandatory
 license="${mod_license}"
 
+# Accessor/invoker mixins into Sable's internal LevelPlot/ServerLevelPlot (com.createastronautics.space.mixin) -
+# needed for cross-dimension ship reconstruction (SubLevelTemplate/SubLevelWarper), ported from Create-Cosmonautics'
+# "Dimensional Sable" module. Both mixins target Sable's own unobfuscated classes, so no remapping is involved.
+[[mixins]]
+config="createastronautics.mixins.json"
+
 [[mods]] #mandatory
 modId="${mod_id}" #mandatory
 version="${mod_version}" #mandatory
@@ -45,6 +51,15 @@ Currently adds two dimensions: the Moon and Deep Space.
 
 [[dependencies.${mod_id}]]
     modId="sable"
+    type="required"
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+# Simulated is bundled inside the Aeronautics distribution (jar-in-jar) but is its own mod - it owns the
+# shared "Create Simulated" creative tab that CreateAstronauticsSection registers our items into directly.
+[[dependencies.${mod_id}]]
+    modId="simulated"
     type="required"
     versionRange="[0,)"
     ordering="AFTER"

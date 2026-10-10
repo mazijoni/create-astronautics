@@ -25,7 +25,12 @@
         "misc": []
     },
     "spawn_costs": {},
-    "carvers": {},
+    "carvers": {
+        "air": [
+            "createastronautics:moon_tunnel_cave",
+            "createastronautics:lunar_rille"
+        ]
+    },
     "features": [
         [],
         [],
@@ -33,8 +38,15 @@
         [],
         [],
         [],
-        [],
-        [],
+        [
+            "createastronautics:moon_ore_coal_upper",
+            "createastronautics:moon_ore_coal_lower",
+            "createastronautics:moon_ore_astrium_deep",
+            "createastronautics:moon_ore_astrium_middle",
+            "createastronautics:moon_ore_astrium_small",
+            "createastronautics:moon_ore_iron"
+        ],
+        ["createastronautics:moonstone_cluster"],
         [],
         [],
         ["createastronautics:crater_material"]

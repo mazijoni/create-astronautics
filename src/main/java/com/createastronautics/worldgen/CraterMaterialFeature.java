@@ -5,7 +5,6 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -65,10 +64,10 @@ public class CraterMaterialFeature extends Feature<NoneFeatureConfiguration> {
     private static BlockState pickRock(RandomSource random) {
         double roll = random.nextDouble();
         if (roll < 1.0 / 3.0) {
-            return Blocks.ANDESITE.defaultBlockState();
+            return ModBlocks.LUNAR_ANDESITE.get().defaultBlockState();
         } else if (roll < 2.0 / 3.0) {
-            return Blocks.GRAVEL.defaultBlockState();
+            return ModBlocks.LUNAR_GRAVEL.get().defaultBlockState();
         }
-        return Blocks.STONE.defaultBlockState();
+        return ModBlocks.LUNAR_STONE.get().defaultBlockState();
     }
 }

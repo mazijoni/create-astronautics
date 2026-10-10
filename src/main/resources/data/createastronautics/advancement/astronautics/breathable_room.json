@@ -1,0 +1,25 @@
+{
+    "parent": "createastronautics:astronautics/moon",
+    "criteria": {
+        "oxygenated_room": {
+            "trigger": "createastronautics:oxygenated_room"
+        }
+    },
+    "display": {
+        "description": {
+            "translate": "advancements.createastronautics.breathable_room.description"
+        },
+        "icon": {
+            "count": 1,
+            "id": "createastronautics:oxygen_fan"
+        },
+        "title": {
+            "translate": "advancements.createastronautics.breathable_room.title"
+        }
+    },
+    "requirements": [
+        [
+            "oxygenated_room"
+        ]
+    ]
+}

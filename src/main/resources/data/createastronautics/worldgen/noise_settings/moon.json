@@ -5,7 +5,7 @@
     "disable_mob_generation": false,
     "aquifers_enabled": false,
     "default_block": {
-        "Name": "minecraft:stone"
+        "Name": "createastronautics:lunar_stone"
     },
     "default_fluid": {
         "Name": "minecraft:air"
@@ -39,7 +39,7 @@
         "depth": 0.0,
         "ridges": 0.0,
         "initial_density_without_jaggedness": "createastronautics:moon_terrain",
-        "final_density": "createastronautics:moon_terrain",
+        "final_density": "createastronautics:moon_caves",
         "vein_toggle": 0.0,
         "vein_ridged": 0.0,
         "vein_gap": 0.0
@@ -124,7 +124,7 @@
                 "type": "minecraft:condition",
                 "if_true": {
                     "type": "minecraft:vertical_gradient",
-                    "random_name": "createastronautics:moon_deepslate",
+                    "random_name": "createastronautics:moon_slate",
                     "true_at_and_below": {
                         "absolute": 0
                     },
@@ -135,7 +135,7 @@
                 "then_run": {
                     "type": "minecraft:block",
                     "result_state": {
-                        "Name": "minecraft:deepslate",
+                        "Name": "createastronautics:moon_slate",
                         "Properties": {
                             "axis": "y"
                         }
@@ -153,7 +153,7 @@
                 "then_run": {
                     "type": "minecraft:block",
                     "result_state": {
-                        "Name": "minecraft:andesite"
+                        "Name": "createastronautics:lunar_andesite"
                     }
                 }
             },
@@ -168,7 +168,7 @@
                 "then_run": {
                     "type": "minecraft:block",
                     "result_state": {
-                        "Name": "minecraft:gravel"
+                        "Name": "createastronautics:lunar_gravel"
                     }
                 }
             }

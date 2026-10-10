@@ -19,7 +19,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public class MagneticBootsNetworkHandler {
     public static void handleToggle(MagneticBootsTogglePayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (context.player() instanceof ServerPlayer player) {
+            if (context.player() instanceof ServerPlayer player && canActivate(player)) {
                 setActive(player, !isActive(player));
             }
         });

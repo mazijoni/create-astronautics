@@ -1,0 +1,10 @@
+{
+    "type": "minecraft:stonecutting",
+    "ingredient": {
+        "item": "createastronautics:moon_cobbled_slate"
+    },
+    "result": {
+        "count": 1,
+        "id": "minecraft:deepslate_tile_wall"
+    }
+}

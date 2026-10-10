@@ -1,0 +1,24 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Converted from geo/armor/brass_space_suit.geo.json's armorHead bone",
+	"texture_size": [64, 64],
+	"textures": {
+		"0": "createastronautics:armor/brass_space_suit",
+		"particle": "createastronautics:armor/brass_space_suit"
+	},
+	"elements": [
+		{
+			"name": "visor",
+			"from": [3.45, 22.9, 3.45],
+			"to": [12.55, 32, 12.55],
+			"faces": {
+				"north": {"uv": [2, 2, 4, 4], "texture": "#0"},
+				"east": {"uv": [0, 2, 2, 4], "texture": "#0"},
+				"south": {"uv": [4, 0, 6, 2], "texture": "#0"},
+				"west": {"uv": [4, 2, 6, 4], "texture": "#0"},
+				"up": {"uv": [4, 2, 2, 0], "texture": "#0"},
+				"down": {"uv": [2, 0, 0, 2], "texture": "#0"}
+			}
+		}
+	]
+}

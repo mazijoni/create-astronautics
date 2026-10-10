@@ -114,6 +114,19 @@ dependencies {
     compileOnly "maven.modrinth:sable:2.0.3+mc1.21.1"
     localRuntime "maven.modrinth:sable:2.0.3+mc1.21.1"
 
+    // Simulated is the framework Create Aeronautics (and its sibling addons, e.g. Offroad) are built on -
+    // it owns the shared "Create Simulated" creative tab and its section system (registry id
+    // simulated:group; see CreateAstronauticsSection). Modrinth's maven wrapper only serves Aeronautics'
+    // own fat jar, which jar-in-jars Simulated rather than exposing it as a normal transitive dependency,
+    // so it's resolved separately here from its own maven, same reasoning as the sable-companion module
+    // below - version pinned to the exact copy jar-in-jar'd inside Create Aeronautics 1.3.0 itself
+    // (confirmed via its jar-in-jar filename).
+    // Transitive deps excluded - its POM pulls in Curios/JEI coordinates that aren't resolvable from any
+    // repo configured here (JEI is already pulled in above under its Modrinth coordinates instead), and
+    // only Simulated's own classes are needed to compile/run against.
+    compileOnly("dev.simulated_team.simulated:simulated-neoforge-1.21.1:1.3.0") { transitive = false }
+    localRuntime("dev.simulated_team.simulated:simulated-neoforge-1.21.1:1.3.0") { transitive = false }
+
     // Sable's companion module (Pose3dc/SubLevelAccess ship-transform API) is jar-in-jar bundled inside the
     // main Sable jar above rather than exposed as a normal transitive dependency, so it's resolved
     // separately here to compile against it - version pinned to the exact copy jar-in-jar'd inside Sable

@@ -1,5 +1,6 @@
 package com.createastronautics;
 
+import com.createastronautics.advancement.ModCriteriaTriggers;
 import com.createastronautics.block.ModBlockEntities;
 import com.createastronautics.block.ModBlocks;
 import com.createastronautics.config.Config;
@@ -11,6 +12,7 @@ import com.createastronautics.item.ModArmorMaterials;
 import com.createastronautics.item.ModItems;
 import com.createastronautics.magnetic.ModAttachments;
 import com.createastronautics.particle.ModParticleTypes;
+import com.createastronautics.space.ShipMoveFixers;
 import com.createastronautics.worldgen.ModDensityFunctionTypes;
 import com.createastronautics.worldgen.ModFeatures;
 import com.mojang.logging.LogUtils;
@@ -18,6 +20,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.capability.wrappers.FluidBucketWrapper;
@@ -38,10 +41,12 @@ public class CreateAstronautics {
         ModItems.ITEMS.register(modEventBus);
         ModDensityFunctionTypes.DENSITY_FUNCTION_TYPES.register(modEventBus);
         ModFeatures.FEATURES.register(modEventBus);
+        ModCriteriaTriggers.TRIGGER_TYPES.register(modEventBus);
         ModParticleTypes.PARTICLE_TYPES.register(modEventBus);
         ModAttachments.ATTACHMENT_TYPES.register(modEventBus);
-        CreateAstronauticsTab.CREATIVE_MODE_TABS.register(modEventBus);
         modEventBus.addListener(this::registerCapabilities);
+        modEventBus.addListener((FMLCommonSetupEvent event) -> CreateAstronauticsSection.register());
+        modEventBus.addListener((FMLCommonSetupEvent event) -> ShipMoveFixers.register());
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 

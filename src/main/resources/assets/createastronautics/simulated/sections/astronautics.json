@@ -1,0 +1,10 @@
+{
+  "priority": 3000,
+  "title": {
+    "text": { "translate": "createastronautics.simulated_section.astronautics" },
+    "background": "#aa1a1a3a",
+    "color": "#ffe0d9ff"
+  },
+  "sprite": "createastronautics:banner",
+  "only_animate_on_hover": true
+}

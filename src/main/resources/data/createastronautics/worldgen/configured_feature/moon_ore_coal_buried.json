@@ -1,0 +1,27 @@
+{
+    "type": "minecraft:ore",
+    "config": {
+        "discard_chance_on_air_exposure": 0.5,
+        "size": 17,
+        "targets": [
+            {
+                "state": {
+                    "Name": "createastronautics:moon_coal_ore"
+                },
+                "target": {
+                    "predicate_type": "minecraft:tag_match",
+                    "tag": "createastronautics:lunar_stone_ore_replaceables"
+                }
+            },
+            {
+                "state": {
+                    "Name": "createastronautics:moon_slate_coal_ore"
+                },
+                "target": {
+                    "predicate_type": "minecraft:tag_match",
+                    "tag": "createastronautics:moon_slate_ore_replaceables"
+                }
+            }
+        ]
+    }
+}

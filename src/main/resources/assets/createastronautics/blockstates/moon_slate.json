@@ -1,0 +1,22 @@
+{
+    "variants": {
+        "axis=x": [
+            { "model": "createastronautics:block/moon_slate", "x": 90, "y": 90 },
+            { "model": "createastronautics:block/moon_slate_mirrored", "x": 90, "y": 90 },
+            { "model": "createastronautics:block/moon_slate", "x": 90, "y": 90 },
+            { "model": "createastronautics:block/moon_slate_mirrored", "x": 90, "y": 90 }
+        ],
+        "axis=y": [
+            { "model": "createastronautics:block/moon_slate" },
+            { "model": "createastronautics:block/moon_slate_mirrored" },
+            { "model": "createastronautics:block/moon_slate", "y": 180 },
+            { "model": "createastronautics:block/moon_slate_mirrored", "y": 180 }
+        ],
+        "axis=z": [
+            { "model": "createastronautics:block/moon_slate", "x": 90 },
+            { "model": "createastronautics:block/moon_slate_mirrored", "x": 90 },
+            { "model": "createastronautics:block/moon_slate", "x": 90, "y": 180 },
+            { "model": "createastronautics:block/moon_slate_mirrored", "x": 90, "y": 180 }
+        ]
+    }
+}

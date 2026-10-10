@@ -1,6 +1,5 @@
 package com.createastronautics.item;
 
-import com.createastronautics.client.BrassSpaceSuitVisorLayer;
 import com.createastronautics.fluid.ModDataComponents;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.Holder;
@@ -32,6 +31,10 @@ import java.util.function.Supplier;
  * layers - the model/animation/texture triple is supplied by a {@link GeoModel}, e.g.
  * {@link BrassSpaceSuitArmorModel}. Adapted from Northstar-Redux's {@code SpaceSuitArmorItem}, see
  * {@code THIRD_PARTY_NOTICES.md}.
+ * <p>
+ * Every piece (including the helmet) renders as one uniform, fully opaque {@link GeoArmorRenderer} - the
+ * helmet's see-through glass visor is a separate overlay drawn on top by
+ * {@link com.createastronautics.client.BrassSpaceSuitHelmetLayer}, not a second render pass here.
  */
 public class BrassSpaceSuitArmorItem extends ArmorItem implements GeoItem {
     private final AnimatableInstanceCache animatableCache = GeckoLibUtil.createInstanceCache(this);
@@ -80,22 +83,7 @@ public class BrassSpaceSuitArmorItem extends ArmorItem implements GeoItem {
             @Override
             public <T extends LivingEntity> HumanoidModel<?> getGeoArmorRenderer(@Nullable T livingEntity, ItemStack itemStack, @Nullable EquipmentSlot equipmentSlot, @Nullable HumanoidModel<T> original) {
                 if (renderer == null) {
-                    // Every piece renders on the default armorCutoutNoCull RenderType - translucent
-                    // RenderTypes get deferred to the end-of-frame translucent pass, which stops them from
-                    // writing depth in time to occlude things like Essential's clothing cosmetics, and
-                    // behaves inconsistently in isolated buffer contexts like the inventory paperdoll.
-                    // Matches Northstar-Redux's SpaceSuitArmorItem, see THIRD_PARTY_NOTICES.md.
-                    GeoArmorRenderer<BrassSpaceSuitArmorItem> newRenderer = new GeoArmorRenderer<>(model.get());
-
-                    if (getType() == Type.HELMET) {
-                        // The helmet's own texture is a glass dome over most of its front/sides (see the
-                        // alpha channel). Rather than switching the whole renderer to translucent, layer a
-                        // second translucent pass over just the opaque helmet's own armorHead bone - see
-                        // BrassSpaceSuitVisorLayer.
-                        newRenderer.addRenderLayer(new BrassSpaceSuitVisorLayer(newRenderer));
-                    }
-
-                    renderer = newRenderer;
+                    renderer = new GeoArmorRenderer<>(model.get());
                 }
                 return renderer;
             }

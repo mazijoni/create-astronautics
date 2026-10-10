@@ -1,0 +1,10 @@
+{
+    "type": "minecraft:stonecutting",
+    "ingredient": {
+        "item": "createastronautics:lunar_stone"
+    },
+    "result": {
+        "count": 2,
+        "id": "minecraft:stone_slab"
+    }
+}

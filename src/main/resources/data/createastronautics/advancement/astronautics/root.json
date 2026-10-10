@@ -1,0 +1,27 @@
+{
+    "criteria": {
+        "unlocked": {
+            "trigger": "minecraft:tick"
+        }
+    },
+    "display": {
+        "announce_to_chat": false,
+        "background": "createastronautics:textures/block/moonstone_block.png",
+        "description": {
+            "translate": "advancements.createastronautics.root.description"
+        },
+        "icon": {
+            "count": 1,
+            "id": "createastronautics:solid_rocket_booster"
+        },
+        "show_toast": false,
+        "title": {
+            "translate": "advancements.createastronautics.root.title"
+        }
+    },
+    "requirements": [
+        [
+            "unlocked"
+        ]
+    ]
+}

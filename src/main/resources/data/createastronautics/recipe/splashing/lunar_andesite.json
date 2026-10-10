@@ -1,0 +1,9 @@
+{
+    "type": "create:splashing",
+    "ingredients": [
+        { "item": "createastronautics:lunar_andesite" }
+    ],
+    "results": [
+        { "id": "minecraft:andesite" }
+    ]
+}

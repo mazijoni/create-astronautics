@@ -1,0 +1,7 @@
+{
+    "variants": {
+        "": {
+            "model": "createastronautics:block/moonstone_block"
+        }
+    }
+}

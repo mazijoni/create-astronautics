@@ -1,0 +1,12 @@
+{
+    "values": [
+        "#minecraft:overworld_carver_replaceables",
+        "createastronautics:moon_dust",
+        "createastronautics:lunar_stone",
+        "createastronautics:lunar_cobblestone",
+        "createastronautics:moon_slate",
+        "createastronautics:moon_cobbled_slate",
+        "createastronautics:lunar_gravel",
+        "createastronautics:lunar_andesite"
+    ]
+}

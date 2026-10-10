@@ -1,5 +1,6 @@
 package com.createastronautics;
 
+import com.createastronautics.advancement.ModCriteriaTriggers;
 import com.createastronautics.block.ModBlocks;
 import com.createastronautics.block.OxygenFanRegistry;
 import com.createastronautics.fluid.ModDataComponents;
@@ -10,6 +11,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -85,6 +87,11 @@ public class PlayerEnvironmentHandler {
     private static final int EXTINGUISH_HORIZONTAL_RADIUS = 12;
     private static final int EXTINGUISH_VERTICAL_RADIUS = 8;
 
+    // Only lava/water at or above this absolute Y freezes/cools - meant to represent exposure to vacuum near
+    // the airless surface. Deep underground pools are insulated by the rock overhead and are left alone,
+    // rather than every lava pocket in every cave instantly turning to obsidian.
+    private static final int VACUUM_EXPOSURE_MIN_Y = 40;
+
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
@@ -99,10 +106,14 @@ public class PlayerEnvironmentHandler {
                 factor == null ? null : FALL_DAMAGE_CANCEL_FACTOR);
 
         boolean noAtmosphere = gravityFactorFor(player.level().dimension()) != null;
+        boolean oxygenated = noAtmosphere && OxygenFanRegistry.isOxygenated(player.level(), player.blockPosition());
         if (noAtmosphere && isWearingFullSpaceSuit(player) && !player.isCreative() && !player.isSpectator()
-                && !OxygenFanRegistry.isOxygenated(player.level(), player.blockPosition())
-                && player.tickCount % OXYGEN_DRAIN_INTERVAL_TICKS == 0) {
+                && !oxygenated && player.tickCount % OXYGEN_DRAIN_INTERVAL_TICKS == 0) {
             drainOxygen(player, OXYGEN_DRAIN_AMOUNT_MB);
+        }
+
+        if (oxygenated && !player.isCreative() && !player.isSpectator() && player instanceof ServerPlayer serverPlayer) {
+            ModCriteriaTriggers.OXYGENATED_ROOM.get().trigger(serverPlayer);
         }
     }
 
@@ -223,9 +234,9 @@ public class PlayerEnvironmentHandler {
         } else if (block instanceof AbstractCandleBlock && state.getValue(BlockStateProperties.LIT)) {
             level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), Block.UPDATE_ALL);
             return true;
-        } else if (block == Blocks.WATER) {
+        } else if (block == Blocks.WATER && pos.getY() >= VACUUM_EXPOSURE_MIN_Y) {
             level.setBlock(pos, Blocks.ICE.defaultBlockState(), Block.UPDATE_ALL);
-        } else if (block == Blocks.LAVA) {
+        } else if (block == Blocks.LAVA && pos.getY() >= VACUUM_EXPOSURE_MIN_Y) {
             level.setBlock(pos, Blocks.OBSIDIAN.defaultBlockState(), Block.UPDATE_ALL);
         }
         return false;
@@ -258,6 +269,15 @@ public class PlayerEnvironmentHandler {
         if (noAtmosphere && !(isWearingFullSpaceSuit(player) && hasOxygenRemaining(player))
                 && !OxygenFanRegistry.isOxygenated(player.level(), BlockPos.containing(player.getEyePosition()))) {
             event.setCanBreathe(false);
+            // There's no air to hold your breath with in a vacuum - skip vanilla's ~15s air-bubble grace
+            // countdown and go straight to actively drowning. Only forced while air supply is still above 0
+            // (the first exposed tick): once this drops it to exactly the -20 threshold, the vanilla drowning
+            // handling (CommonHooks#onLivingBreathe) resets air to 0 and deals damage, and every tick after
+            // that falls through to the event's normal per-tick consume amount, so the ~1-per-second damage
+            // cadence from there on still matches vanilla instead of hitting every single tick.
+            if (player.getAirSupply() > 0) {
+                event.setConsumeAirAmount(player.getAirSupply() + 20);
+            }
         }
     }
 
@@ -273,7 +293,9 @@ public class PlayerEnvironmentHandler {
         }
     }
 
-    private static boolean isWearingFullSpaceSuit(Player player) {
+    /** Visible to {@link com.createastronautics.client.VacuumExposureOverlay}, which needs the same check to
+     * tell "no suit at all, actually exposed to the cold" apart from "suit on but tank empty, just suffocating". */
+    public static boolean isWearingFullSpaceSuit(Player player) {
         return player.getItemBySlot(EquipmentSlot.HEAD).is(ModItems.BRASS_SPACE_SUIT_HELMET.get())
                 && player.getItemBySlot(EquipmentSlot.CHEST).is(ModItems.BRASS_SPACE_SUIT_CHESTPLATE.get())
                 && player.getItemBySlot(EquipmentSlot.LEGS).is(ModItems.BRASS_SPACE_SUIT_LEGGINGS.get())

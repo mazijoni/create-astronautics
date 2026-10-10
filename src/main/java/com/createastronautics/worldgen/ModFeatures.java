@@ -12,4 +12,7 @@ public class ModFeatures {
 
     public static final DeferredHolder<Feature<?>, CraterMaterialFeature> CRATER_MATERIAL =
             FEATURES.register("crater_material", () -> new CraterMaterialFeature(NoneFeatureConfiguration.CODEC));
+
+    public static final DeferredHolder<Feature<?>, MoonstoneClusterFeature> MOONSTONE_CLUSTER =
+            FEATURES.register("moonstone_cluster", () -> new MoonstoneClusterFeature(NoneFeatureConfiguration.CODEC));
 }

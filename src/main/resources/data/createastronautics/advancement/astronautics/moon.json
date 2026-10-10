@@ -1,0 +1,28 @@
+{
+    "parent": "createastronautics:astronautics/deep_space",
+    "criteria": {
+        "entered_moon": {
+            "trigger": "minecraft:changed_dimension",
+            "conditions": {
+                "to": "astronautics:moon"
+            }
+        }
+    },
+    "display": {
+        "description": {
+            "translate": "advancements.createastronautics.moon.description"
+        },
+        "icon": {
+            "count": 1,
+            "id": "createastronautics:moon_dust"
+        },
+        "title": {
+            "translate": "advancements.createastronautics.moon.title"
+        }
+    },
+    "requirements": [
+        [
+            "entered_moon"
+        ]
+    ]
+}

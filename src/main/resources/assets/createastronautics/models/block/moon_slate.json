@@ -1,0 +1,7 @@
+{
+    "parent": "minecraft:block/cube_column",
+    "textures": {
+        "end": "createastronautics:block/moon_slate_top",
+        "side": "createastronautics:block/moon_slate"
+    }
+}

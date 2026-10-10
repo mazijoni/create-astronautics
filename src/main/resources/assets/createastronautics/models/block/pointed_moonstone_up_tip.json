@@ -1,0 +1,6 @@
+{
+    "parent": "createastronautics:block/pointed_moonstone",
+    "textures": {
+        "cross": "createastronautics:block/pointed_moonstone_up_tip"
+    }
+}

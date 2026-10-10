@@ -1,0 +1,6 @@
+{
+    "feature": "createastronautics:moonstone_cluster",
+    "placement": [
+        { "type": "minecraft:biome" }
+    ]
+}

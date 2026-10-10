@@ -1,0 +1,10 @@
+{
+    "type": "minecraft:stonecutting",
+    "ingredient": {
+        "item": "createastronautics:lunar_cobblestone"
+    },
+    "result": {
+        "count": 1,
+        "id": "minecraft:cobblestone_wall"
+    }
+}

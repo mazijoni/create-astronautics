@@ -3,12 +3,11 @@
 	"parent": "block/block",
 	"textures": {
 		"gearbox": "createastronautics:block/oxygen_fan/gearbox",
-		"andesite_funnel_frame": "createastronautics:block/oxygen_fan/andesite_funnel_frame_ccw",
+		"andesite_funnel_frame": "createastronautics:block/oxygen_fan/andesite_funnel_frame",
 		"fan_casing": "createastronautics:block/oxygen_fan/fan_casing",
 		"fan_side": "createastronautics:block/oxygen_fan/fan_side",
 		"fan_blades": "create:block/fan_blades",
 		"axis": "create:block/axis",
-		"axis_top": "create:block/axis_top",
 		"pipe_side": "createastronautics:block/oxygen_fan/pipe_side",
 		"particle": "createastronautics:block/oxygen_fan/fan_side"
 	},
@@ -18,7 +17,7 @@
 			"from": [0, 0, 0],
 			"to": [16, 2, 16],
 			"faces": {
-				"north": {"uv": [0, 14, 16, 16], "texture": "#fan_side"},
+				"north": {"uv": [0, 14, 16, 16], "texture": "#andesite_funnel_frame"},
 				"east": {"uv": [14, 0, 16, 16], "rotation": 90, "texture": "#fan_side"},
 				"south": {"uv": [0, 14, 16, 16], "texture": "#andesite_funnel_frame"},
 				"west": {"uv": [14, 0, 16, 16], "rotation": 90, "texture": "#fan_side"},
@@ -31,9 +30,9 @@
 			"from": [0, 14, 0],
 			"to": [16, 16, 16],
 			"faces": {
-				"north": {"uv": [0, 0, 16, 2], "texture": "#andesite_funnel_frame"},
+				"north": {"uv": [0, 0, 2, 16], "rotation": 90, "texture": "#andesite_funnel_frame"},
 				"east": {"uv": [0, 0, 2, 16], "rotation": 90, "texture": "#fan_side"},
-				"south": {"uv": [0, 0, 16, 2], "texture": "#andesite_funnel_frame"},
+				"south": {"uv": [0, 0, 2, 16], "rotation": 90, "texture": "#andesite_funnel_frame"},
 				"west": {"uv": [14, 0, 16, 16], "rotation": 270, "texture": "#fan_side"},
 				"up": {"uv": [0, 0, 16, 16], "texture": "#fan_side"},
 				"down": {"uv": [0, 0, 16, 16], "rotation": 180, "texture": "#fan_side"}
@@ -55,9 +54,9 @@
 			"from": [14, 2, 0],
 			"to": [16, 14, 16],
 			"faces": {
-				"north": {"uv": [0, 2, 2, 14], "texture": "#andesite_funnel_frame"},
+				"north": {"uv": [2, 0, 14, 2], "rotation": 270, "texture": "#andesite_funnel_frame"},
 				"east": {"uv": [2, 0, 14, 16], "rotation": 90, "texture": "#pipe_side"},
-				"south": {"uv": [14, 2, 16, 14], "texture": "#andesite_funnel_frame"},
+				"south": {"uv": [2, 0, 14, 2], "rotation": 90, "texture": "#andesite_funnel_frame"},
 				"west": {"uv": [14, 0, 2, 16], "rotation": 270, "texture": "#fan_side"}
 			}
 		},
@@ -67,7 +66,7 @@
 			"to": [14, 14, 1],
 			"faces": {
 				"north": {"uv": [2, 2, 14, 14], "texture": "#fan_casing"},
-				"south": {"uv": [2, 2, 14, 14], "texture": "#fan_casing"}
+				"south": {"uv": [2, 2, 14, 14], "texture": "#missing"}
 			}
 		},
 		{
@@ -96,7 +95,6 @@
 			"name": "Fan",
 			"from": [1, 1, 4],
 			"to": [15, 15, 12],
-			"neoforge_data": {"calculate_normals": true},
 			"rotation": {"angle": 22.5, "axis": "z", "origin": [8, 8, 8]},
 			"faces": {
 				"north": {"uv": [1, 1, 15, 15], "texture": "#fan_blades"},

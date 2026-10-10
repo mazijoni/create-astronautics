@@ -1,0 +1,46 @@
+{
+    "type": "minecraft:canyon",
+    "config": {
+        "probability": 0.02,
+        "y": {
+            "type": "minecraft:uniform",
+            "min_inclusive": { "absolute": -32 },
+            "max_inclusive": { "absolute": 140 }
+        },
+        "yScale": 3.0,
+        "lava_level": { "absolute": -100 },
+        "replaceable": "#createastronautics:moon_carver_replaceables",
+        "vertical_rotation": {
+            "type": "minecraft:uniform",
+            "min_inclusive": -0.125,
+            "max_exclusive": 0.125
+        },
+        "shape": {
+            "distance_factor": {
+                "type": "minecraft:uniform",
+                "min_inclusive": 0.75,
+                "max_exclusive": 1.0
+            },
+            "thickness": {
+                "type": "minecraft:trapezoid",
+                "min": 0.0,
+                "max": 6.0,
+                "plateau": 2.0
+            },
+            "width_smoothness": 3,
+            "horizontal_radius_factor": {
+                "type": "minecraft:uniform",
+                "min_inclusive": 0.75,
+                "max_exclusive": 1.0
+            },
+            "vertical_radius_default_factor": 1.2,
+            "vertical_radius_center_factor": 0.0
+        },
+        "debug_settings": {
+            "air_state": { "Name": "minecraft:cave_air" },
+            "barrier_state": { "Name": "minecraft:barrier" },
+            "lava_state": { "Name": "minecraft:lava" },
+            "water_state": { "Name": "minecraft:water" }
+        }
+    }
+}
