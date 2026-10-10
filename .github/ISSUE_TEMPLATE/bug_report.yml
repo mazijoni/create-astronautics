@@ -1,0 +1,113 @@
+name: Bug report
+description: Report a crash, glitch, or something that doesn't work as intended in Create Astronautics.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill in as much as you can — the more detail, the faster it gets fixed.
+
+        For questions or suggestions, use the [Discord server](https://discord.gg/2heSSRtSZt) instead.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: When I ..., the game ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can the bug be triggered? List every step.
+      placeholder: |
+        1. Travel to the Moon
+        2. Place ...
+        3. See ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen instead?
+    validations:
+      required: false
+
+  - type: input
+    id: mod-version
+    attributes:
+      label: Create Astronautics version
+      placeholder: e.g. 0.2.0
+    validations:
+      required: true
+
+  - type: input
+    id: neoforge-version
+    attributes:
+      label: Minecraft and NeoForge version
+      placeholder: e.g. 1.21.1 / NeoForge 21.1.244
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Where does it happen?
+      options:
+        - Singleplayer
+        - Dedicated server
+        - LAN / open to LAN
+        - Both singleplayer and server
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: related-mods
+    attributes:
+      label: Related mods installed
+      description: Tick the ones you have installed.
+      options:
+        - label: Create
+        - label: Create Aeronautics
+        - label: Sable
+
+  - type: textarea
+    id: other-mods
+    attributes:
+      label: Other mods or modpack
+      description: Name the modpack, or list other mods that might be involved. Does the bug still happen with only Create Astronautics and its dependencies?
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Crash report or log
+      description: Upload your crash report or `latest.log` to https://mclo.gs and paste the link, or paste the relevant part here.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots or video
+      description: Drag and drop images or clips here if they help show the problem.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and this hasn't been reported yet.
+          required: true
+        - label: I'm using the latest version of Create Astronautics.
+          required: false
