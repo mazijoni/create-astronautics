@@ -41,9 +41,9 @@
         [
             "createastronautics:moon_ore_coal_upper",
             "createastronautics:moon_ore_coal_lower",
-            "createastronautics:moon_ore_astrium_deep",
-            "createastronautics:moon_ore_astrium_middle",
-            "createastronautics:moon_ore_astrium_small",
+            "createastronautics:moon_ore_crystallite_deep",
+            "createastronautics:moon_ore_crystallite_middle",
+            "createastronautics:moon_ore_crystallite_small",
             "createastronautics:moon_ore_iron"
         ],
         ["createastronautics:moonstone_cluster"],

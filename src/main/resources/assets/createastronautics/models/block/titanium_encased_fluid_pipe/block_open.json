@@ -1,0 +1,31 @@
+{
+    "textures": {
+        "0": "createastronautics:block/titanium_encased_pipe",
+        "particle": "createastronautics:block/titanium_encased_pipe"
+    },
+    "elements": [
+        {
+            "from": [
+                0,
+                0,
+                15
+            ],
+            "to": [
+                16,
+                16,
+                16
+            ],
+            "faces": {
+                "south": {
+                    "uv": [
+                        0,
+                        0,
+                        16,
+                        16
+                    ],
+                    "texture": "#0"
+                }
+            }
+        }
+    ]
+}

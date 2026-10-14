@@ -4,6 +4,11 @@
 			"type": "directory",
 			"source": "armor",
 			"prefix": "armor/"
+		},
+		{
+			"type": "directory",
+			"source": "fluid",
+			"prefix": "fluid/"
 		}
 	]
 }

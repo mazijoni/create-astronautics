@@ -76,9 +76,11 @@ public record SubLevelTemplate(CompoundTag plotTag) {
 
         final ServerLevel level = plot.getSubLevel().getLevel();
 
-        int minY = level.dimensionType().minY();
-        // minY accounts for the different starting y levels a dimension can have (overworld is -64, nether is 0)
-        final BlockPos center = plot.getCenterBlock().offset(0, minY, 0);
+        // getCenterBlock() is already the middle of this dimension's own build range, so it accounts for the
+        // different starting y levels dimensions can have (Overworld is -64, Deep Space is 0) by itself -
+        // adding minY on top (as upstream does) shifts block entities away from their blocks, which are
+        // carried across by section index, whenever the two dimensions don't start at the same height.
+        final BlockPos center = plot.getCenterBlock();
 
         final CompoundTag chunks = new CompoundTag();
         for (final PlotChunkHolder chunkHolder : plot.getLoadedChunks()) {
@@ -183,8 +185,7 @@ public record SubLevelTemplate(CompoundTag plotTag) {
         final ServerSubLevel subLevel = destinationPlot.getSubLevel();
         final ServerLevel level = subLevel.getLevel();
 
-        int minY = level.dimensionType().minY();
-        final BlockPos center = destinationPlot.getCenterBlock().offset(0, minY, 0);
+        final BlockPos center = destinationPlot.getCenterBlock();
 
         if (tag.contains("biome")) {
             final ResourceLocation location = ResourceLocation.tryParse(tag.getString("biome"));

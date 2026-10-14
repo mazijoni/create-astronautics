@@ -4,6 +4,8 @@ import com.createastronautics.CreateAstronautics;
 import com.createastronautics.block.ModBlockEntities;
 import com.createastronautics.block.ModBlocks;
 import com.createastronautics.client.particle.OxygenMistParticle;
+import com.createastronautics.client.ponder.AstronauticsPonderPlugin;
+import net.createmod.ponder.foundation.PonderIndex;
 import com.createastronautics.client.particle.RocketPlumeParticle;
 import com.createastronautics.client.sky.DeepSpaceSpecialEffects;
 import com.createastronautics.client.sky.MoonSpecialEffects;
@@ -38,6 +40,7 @@ public class CreateAstronauticsClient {
         // with Flywheel before models are baked - matches Northstar-Redux's own NorthstarPartialModels
         // registration timing, see BrassSpaceSuitPartialModels' javadoc.
         BrassSpaceSuitPartialModels.register();
+        RedstoneRegulatorRenderer.registerPartialModels();
 
         modEventBus.addListener(this::registerDimensionSpecialEffects);
         modEventBus.addListener(this::registerRenderers);
@@ -47,6 +50,8 @@ public class CreateAstronauticsClient {
         modEventBus.addListener(this::clientSetup);
         modEventBus.addListener(this::registerClientExtensions);
         modEventBus.addListener(this::registerGuiLayers);
+        modEventBus.addListener(TitaniumCasingModels::modifyBakingResult);
+
     }
 
     private void registerDimensionSpecialEffects(RegisterDimensionSpecialEffectsEvent event) {
@@ -60,6 +65,7 @@ public class CreateAstronauticsClient {
     private void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.SOLID_ROCKET_BOOSTER.get(), SmartBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.OXYGEN_FAN.get(), OxygenFanRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.REDSTONE_REGULATOR.get(), RedstoneRegulatorRenderer::new);
     }
 
     private void addEntityRendererLayers(EntityRenderersEvent.AddLayers event) {
@@ -76,12 +82,17 @@ public class CreateAstronauticsClient {
     }
 
     private void clientSetup(FMLClientSetupEvent event) {
-        // Matches Create's own smart chute: its model has cutout gaps in the texture that need to render
-        // as transparent instead of solid black.
+        PonderIndex.addPlugin(new AstronauticsPonderPlugin());
+
         event.enqueueWork(() -> {
+            TitaniumCasingModels.registerConnectivity();
+            // Matches Create's own smart chute: its model has cutout gaps in the texture that need to render
+            // as transparent instead of solid black.
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.SOLID_ROCKET_BOOSTER.get(), ChunkRenderTypeSet.of(RenderType.cutoutMipped()));
             // The fan blade/lattice geometry has cutout gaps, same reasoning as the smart chute above.
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.OXYGEN_FAN.get(), ChunkRenderTypeSet.of(RenderType.cutoutMipped()));
+            // Same layer Create gives its own diodes - the torch on the model is a cutout texture.
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.REDSTONE_REGULATOR.get(), ChunkRenderTypeSet.of(RenderType.cutoutMipped()));
             // Matches vanilla's own torch registration (ItemBlockRenderTypes) - without this the model's
             // transparent background renders as solid black instead of see-through.
             ItemBlockRenderTypes.setRenderLayer(ModBlocks.BURNT_TORCH.get(), ChunkRenderTypeSet.of(RenderType.cutout()));
@@ -114,6 +125,7 @@ public class CreateAstronauticsClient {
             }
         }, ModFluidTypes.OXYGEN.get());
     }
+
 
     private void registerGuiLayers(RegisterGuiLayersEvent event) {
         event.registerAboveAll(ResourceLocation.fromNamespaceAndPath(CreateAstronautics.MODID, "oxygen_timer"), OxygenTimerOverlay.INSTANCE);

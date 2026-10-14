@@ -1,0 +1,21 @@
+{
+    "variants": {
+        "": [
+            {
+                "model": "createastronautics:block/dead_grass"
+            },
+            {
+                "model": "createastronautics:block/dead_grass",
+                "y": 90
+            },
+            {
+                "model": "createastronautics:block/dead_grass",
+                "y": 180
+            },
+            {
+                "model": "createastronautics:block/dead_grass",
+                "y": 270
+            }
+        ]
+    }
+}

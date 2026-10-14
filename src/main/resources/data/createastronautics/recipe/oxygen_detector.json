@@ -1,0 +1,24 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "redstone",
+    "pattern": [
+        "E",
+        "C",
+        "O"
+    ],
+    "key": {
+        "E": {
+            "item": "create:electron_tube"
+        },
+        "C": {
+            "item": "createastronautics:titanium_casing"
+        },
+        "O": {
+            "item": "minecraft:observer"
+        }
+    },
+    "result": {
+        "count": 1,
+        "id": "createastronautics:oxygen_detector"
+    }
+}

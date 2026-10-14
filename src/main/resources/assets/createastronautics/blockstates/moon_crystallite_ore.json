@@ -1,5 +1,5 @@
 {
     "variants": {
-        "": { "model": "createastronautics:block/moon_astrium_ore" }
+        "": { "model": "createastronautics:block/moon_crystallite_ore" }
     }
 }

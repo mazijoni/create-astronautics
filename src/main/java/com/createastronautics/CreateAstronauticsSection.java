@@ -15,30 +15,23 @@ import net.minecraft.world.item.Item;
  * into {@link SimulatedRegistrate}'s static bookkeeping rather than through its {@code Registrate} builder
  * pipeline - our items are already registered via a plain {@code DeferredRegister}, so there's nothing to
  * gain from routing registration itself through Simulated's Registrate subclass.
+ *
+ * Only machines, gear and materials go here - terrain and building blocks have a tab of their own, see
+ * {@link PlanetBlocksTab}.
  */
 public class CreateAstronauticsSection {
     private static final ResourceLocation SECTION_ID = ResourceLocation.fromNamespaceAndPath(CreateAstronautics.MODID, "astronautics");
 
     public static void register() {
-        addItem(ModItems.MOON_DUST.get());
         addItem(ModItems.BURNT_TORCH.get());
         addItem(ModItems.OXYGEN_FAN.get());
         addItem(ModItems.OXYGEN_BUCKET.get());
-        addItem(ModItems.MOONSTONE_BLOCK.get());
-        addItem(ModItems.POINTED_MOONSTONE.get());
-        addItem(ModItems.LUNAR_STONE.get());
-        addItem(ModItems.LUNAR_COBBLESTONE.get());
-        addItem(ModItems.MOON_SLATE.get());
-        addItem(ModItems.MOON_COBBLED_SLATE.get());
-        addItem(ModItems.LUNAR_GRAVEL.get());
-        addItem(ModItems.LUNAR_ANDESITE.get());
-        addItem(ModItems.MOON_COAL_ORE.get());
-        addItem(ModItems.MOON_SLATE_COAL_ORE.get());
-        addItem(ModItems.MOON_IRON_ORE.get());
-        addItem(ModItems.MOON_SLATE_IRON_ORE.get());
-        addItem(ModItems.MOON_ASTRIUM_ORE.get());
-        addItem(ModItems.MOON_SLATE_ASTRIUM_ORE.get());
-        addItem(ModItems.ASTRIUM.get());
+        addItem(ModItems.REDSTONE_REGULATOR.get());
+        addItem(ModItems.OXYGEN_DETECTOR.get());
+        addItem(ModItems.TITANIUM_CASING.get());
+        addItem(ModItems.CRYSTALLITE.get());
+        addItem(ModItems.CARBON_DUST.get());
+        addItem(ModItems.TITANIUM_INGOT.get());
         addItem(ModItems.BRASS_SPACE_SUIT_HELMET.get());
         addItem(ModItems.BRASS_SPACE_SUIT_CHESTPLATE.get());
         addItem(ModItems.BRASS_SPACE_SUIT_LEGGINGS.get());

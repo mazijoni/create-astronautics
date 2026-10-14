@@ -1,5 +1,5 @@
 {
-    "feature": "createastronautics:moon_ore_astrium_small",
+    "feature": "createastronautics:moon_ore_crystallite_small",
     "placement": [
         { "type": "minecraft:count", "count": 4 },
         { "type": "minecraft:in_square" },

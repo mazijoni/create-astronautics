@@ -24,14 +24,14 @@
                                     }
                                 }
                             ],
-                            "name": "createastronautics:moon_astrium_ore"
+                            "name": "createastronautics:moon_crystallite_ore"
                         },
                         {
                             "type": "minecraft:item",
                             "functions": [
                                 { "function": "minecraft:explosion_decay" }
                             ],
-                            "name": "createastronautics:astrium"
+                            "name": "createastronautics:crystallite"
                         }
                     ]
                 }

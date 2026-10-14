@@ -1,0 +1,15 @@
+{
+    "type": "create:crushing",
+    "ingredients": [
+        {
+            "item": "minecraft:coal"
+        }
+    ],
+    "processing_time": 150,
+    "results": [
+        {
+            "chance": 0.4,
+            "id": "createastronautics:carbon_dust"
+        }
+    ]
+}

@@ -14,6 +14,22 @@ public class ModDimensions {
     public static final ResourceKey<Level> MOON = key("moon");
     public static final ResourceKey<Level> DEEP_SPACE = key("deep_space");
 
+    /**
+     * How strong gravity is in a dimension relative to the Overworld's: 0 in Deep Space, 1/6 on the Moon, 1
+     * everywhere else. Applies to everything that isn't a living creature - dropped items, arrows, falling
+     * blocks, particles. Players get theirs through an attribute modifier instead (see
+     * {@link PlayerEnvironmentHandler}), since magnetic boots have to be able to switch it back on.
+     */
+    public static float gravityScale(ResourceKey<Level> dimension) {
+        if (dimension == DEEP_SPACE) {
+            return 0.0F;
+        }
+        if (dimension == MOON) {
+            return 1.0F / 6.0F;
+        }
+        return 1.0F;
+    }
+
     private static ResourceKey<Level> key(String path) {
         return ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath(NAMESPACE, path));
     }

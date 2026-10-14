@@ -1,0 +1,7 @@
+{
+  "parent": "createastronautics:block/redstone_regulator/block",
+  "textures": {
+    "top": "createastronautics:block/redstone_regulator/powered_powering",
+    "torch": "minecraft:block/redstone_torch"
+  }
+}

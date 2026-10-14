@@ -2,6 +2,7 @@ package com.createastronautics;
 
 import com.createastronautics.advancement.ModCriteriaTriggers;
 import com.createastronautics.block.ModBlocks;
+import com.createastronautics.block.OxygenFanBlockEntity;
 import com.createastronautics.block.OxygenFanRegistry;
 import com.createastronautics.fluid.ModDataComponents;
 import com.createastronautics.item.ModItems;
@@ -173,9 +174,9 @@ public class PlayerEnvironmentHandler {
      * torches are snuffed out (torches leave behind {@link ModBlocks#BURNT_TORCH}/{@code BURNT_WALL_TORCH}
      * rather than just vanishing), regular campfires and candles are blown out (just flipped unlit, same as
      * vanilla's own "put out with water/shovel" behaviour - the block stays, only the flame/light/particles
-     * stop), and standing water/lava flash-freezes/cools since there's nothing to hold it as a liquid. Soul
-     * torches and soul campfires are left alone, on the theory that soul fire doesn't need ambient air the
-     * way a normal flame does.
+     * stop), grass dies off into {@link ModBlocks#DEAD_GRASS}, and standing water/lava flash-freezes/cools
+     * since there's nothing to hold it as a liquid. Soul torches and soul campfires are left alone, on the
+     * theory that soul fire doesn't need ambient air the way a normal flame does.
      */
     private static void extinguishNearby(ServerLevel level) {
         if (level.getGameTime() % EXTINGUISH_INTERVAL_TICKS != 0) {
@@ -234,6 +235,10 @@ public class PlayerEnvironmentHandler {
         } else if (block instanceof AbstractCandleBlock && state.getValue(BlockStateProperties.LIT)) {
             level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), Block.UPDATE_ALL);
             return true;
+        } else if (block == Blocks.GRASS_BLOCK) {
+            // Nothing alive survives without air - at any depth, unlike the liquids below, since grass only
+            // ever grows where it's open to the sky anyway. No sound: it withers, it doesn't go out.
+            level.setBlock(pos, ModBlocks.DEAD_GRASS.get().defaultBlockState(), Block.UPDATE_ALL);
         } else if (block == Blocks.WATER && pos.getY() >= VACUUM_EXPOSURE_MIN_Y) {
             level.setBlock(pos, Blocks.ICE.defaultBlockState(), Block.UPDATE_ALL);
         } else if (block == Blocks.LAVA && pos.getY() >= VACUUM_EXPOSURE_MIN_Y) {
@@ -266,8 +271,19 @@ public class PlayerEnvironmentHandler {
         }
 
         boolean noAtmosphere = gravityFactorFor(player.level().dimension()) != null;
-        if (noAtmosphere && !(isWearingFullSpaceSuit(player) && hasOxygenRemaining(player))
-                && !OxygenFanRegistry.isOxygenated(player.level(), BlockPos.containing(player.getEyePosition()))) {
+        if (!noAtmosphere) {
+            return;
+        }
+
+        // Breathing a sealed room's air uses up some of the fan's oxygen, on top of what just keeping the
+        // room pressurised costs it.
+        OxygenFanBlockEntity supplier = OxygenFanRegistry.findSupplier(player.level(), BlockPos.containing(player.getEyePosition()));
+        if (supplier != null) {
+            supplier.drainOxygen(OxygenFanBlockEntity.BREATHING_DRAIN_MB);
+            return;
+        }
+
+        if (!(isWearingFullSpaceSuit(player) && hasOxygenRemaining(player))) {
             event.setCanBreathe(false);
             // There's no air to hold your breath with in a vacuum - skip vanilla's ~15s air-bubble grace
             // countdown and go straight to actively drowning. Only forced while air supply is still above 0
@@ -323,6 +339,14 @@ public class PlayerEnvironmentHandler {
 
     private static FluidStack oxygenContent(ItemStack chest) {
         return chest.getOrDefault(ModDataComponents.OXYGEN_CONTENT.get(), SimpleFluidContent.EMPTY).copy();
+    }
+
+    /**
+     * Whether there's air to breathe at {@code pos}: anywhere in a dimension with an atmosphere of its own,
+     * otherwise only inside a sealed room an oxygen fan is supplying - the same rule players breathe by.
+     */
+    public static boolean hasOxygen(Level level, BlockPos pos) {
+        return gravityFactorFor(level.dimension()) == null || OxygenFanRegistry.isOxygenated(level, pos);
     }
 
     private static Double gravityFactorFor(ResourceKey<Level> dimension) {

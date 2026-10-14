@@ -6,67 +6,72 @@ import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.utility.CreateLang;
+import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.api.block.propeller.BlockEntityPropeller;
 import dev.ryanhcode.sable.api.block.propeller.BlockEntitySubLevelPropellerActor;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Locale;
 
 /**
- * Burns items dropped into its intake face (whatever counts as furnace fuel) and, while lit, both stays
- * "powered" for redstone purposes and pushes on any Sable ship it's mounted to - see
- * {@link #getScaledThrust()} for how that push is computed.
+ * Burns the solid fuel stacked on its intake side and, while lit, both stays "powered" for redstone
+ * purposes and pushes on any Sable ship it's mounted to - see {@link #getScaledThrust()} for how that push
+ * is computed.
+ *
+ * Fuel isn't put <em>into</em> the booster: it's built onto it, as blocks from the
+ * {@link ModBlockTags#SOLID_ROCKET_FUEL} tag (blocks of coal) anywhere in the 3x3 column reaching
+ * {@link #FUEL_STACK_HEIGHT} blocks out from the intake face. The booster eats that stack one block at a
+ * time from the far end back towards itself (see {@link #findNextFuelBlock}), each block burning for
+ * {@link Config#SOLID_ROCKET_BOOSTER_FUEL_BLOCK_BURN_TICKS}. Boosters sitting next to each other reach into
+ * overlapping columns and simply share whatever is there.
+ *
+ * The exhaust is also hot: whatever solid block the nozzle is pointed at from close range is cooked into
+ * magma (see {@link #scanExhaust}, {@link #heatTarget}), unless the exhaust has somewhere to go - blocks in
+ * {@link ModBlockTags#EXHAUST_PASSES_THROUGH} (bars, grates) let it straight through, which is what a
+ * launch pad should be made of.
  */
 public class SolidRocketBoosterBlockEntity extends SmartBlockEntity
         implements IHaveGoggleInformation, BlockEntitySubLevelPropellerActor, BlockEntityPropeller {
-    private static final int ADJACENT_PULL_INTERVAL = 8; // matches vanilla hopper's own cooldown
-    private static final int OBSTRUCTION_SCAN_INTERVAL = 10;
-    private static final int OBSTRUCTION_SCAN_LENGTH = 5; // blocks of clearance in front of the nozzle for 100% efficiency
+    public static final int FUEL_STACK_HEIGHT = 4;
+    private static final int FUEL_STACK_RADIUS = 1; // 3x3
+
+    private static final int EXHAUST_SCAN_INTERVAL = 10;
+    private static final int EXHAUST_SCAN_LENGTH = 5; // blocks of clearance in front of the nozzle for 100% efficiency
+    // How long a block has to sit in the exhaust before it turns to magma, per block of distance from the
+    // nozzle - one second right up against it, five at the far end of the plume.
+    private static final int HEAT_TICKS_PER_BLOCK_OF_DISTANCE = 20;
+    private static final int FUEL_COUNT_INTERVAL = 20;
     private static final int BURN_SYNC_INTERVAL = 20; // keeps the goggle countdown live instead of only updating on fuel changes
-    private static final int FUEL_STACK_LIMIT = 64;
-
-    private final ItemStackHandler fuelInventory = new ItemStackHandler(1) {
-        @Override
-        protected void onContentsChanged(int slot) {
-            setChanged();
-            sendData();
-        }
-
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return isValidFuel(stack);
-        }
-
-        @Override
-        public int getSlotLimit(int slot) {
-            return FUEL_STACK_LIMIT;
-        }
-    };
 
     private int burnTicksRemaining;
     private int burnTicksTotal;
-    // 1 = fully clear nozzle, 0 = completely blocked. Recomputed periodically in tick(), see updateObstruction().
+    // 1 = fully clear nozzle, 0 = completely blocked. Recomputed periodically in tick(), see scanExhaust().
     private float efficiency = 1.0f;
+    // How many fuel blocks are stacked within reach - counted server-side, synced for the goggle readout.
+    private int fuelBlocks;
+
+    // The block currently being cooked by the exhaust, how far from the nozzle it is, and for how long.
+    @Nullable
+    private BlockPos heatTarget;
+    private int heatTargetDistance;
+    private int heatTicks;
 
     public SolidRocketBoosterBlockEntity(BlockPos pos, BlockState state) {
         this(ModBlockEntities.SOLID_ROCKET_BOOSTER.get(), pos, state);
@@ -78,7 +83,6 @@ public class SolidRocketBoosterBlockEntity extends SmartBlockEntity
 
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
-        // No filter slot - any furnace fuel is accepted.
     }
 
     @Override
@@ -86,13 +90,6 @@ public class SolidRocketBoosterBlockEntity extends SmartBlockEntity
         super.tick();
         if (level == null || level.isClientSide) {
             return;
-        }
-
-        if (level.getGameTime() % ADJACENT_PULL_INTERVAL == 0) {
-            tryPullFuelFromAdjacentInventory();
-        }
-        if (level.getGameTime() % OBSTRUCTION_SCAN_INTERVAL == 0) {
-            updateObstruction();
         }
 
         boolean wasBurning = isBurning();
@@ -108,139 +105,198 @@ public class SolidRocketBoosterBlockEntity extends SmartBlockEntity
         }
         // Losing redstone signal mid-burn pauses the countdown rather than resetting it (so the fuel isn't
         // wasted and burning picks back up where it left off) - but exhaust must still stop immediately,
-        // so both effects below require POWERED explicitly rather than relying on isBurning() alone, which
+        // so everything below requires POWERED explicitly rather than relying on isBurning() alone, which
         // stays true the whole time the countdown sits paused.
+        boolean firing = powered && isBurning();
+
+        if (level.getGameTime() % EXHAUST_SCAN_INTERVAL == 0) {
+            scanExhaust(firing);
+        }
+        if (level.getGameTime() % FUEL_COUNT_INTERVAL == 0) {
+            updateFuelCount();
+        }
 
         // A fully blocked nozzle has nowhere for the particle to go but into whatever's obstructing it, so
         // it's skipped entirely rather than spawning particles that immediately embed in a block.
-        if (powered && isBurning() && efficiency > 0f) {
+        if (firing && efficiency > 0f) {
             spawnExhaustEffects();
         }
 
         // Only push a sync packet on a state change or on a fixed interval while burning, instead of every
         // tick, so the goggle countdown stays live without spamming updates.
-        if (isBurning() != wasBurning || (powered && isBurning() && level.getGameTime() % BURN_SYNC_INTERVAL == 0)) {
+        if (isBurning() != wasBurning || (firing && level.getGameTime() % BURN_SYNC_INTERVAL == 0)) {
             setChanged();
             sendData();
         }
+    }
+
+    // --- Fuel ---
+
+    private void startBurningNextFuel() {
+        BlockPos fuelPos = findNextFuelBlock();
+        if (fuelPos == null) {
+            return;
+        }
+
+        BlockState fuel = level.getBlockState(fuelPos);
+        level.removeBlock(fuelPos, false);
+        // The same puff of block particles and break sound as mining it, minus the drop.
+        level.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, fuelPos, Block.getId(fuel));
+
+        burnTicksTotal = Config.SOLID_ROCKET_BOOSTER_FUEL_BLOCK_BURN_TICKS.get();
+        burnTicksRemaining = burnTicksTotal;
+        updateFuelCount();
     }
 
     /**
-     * Scans outward from the nozzle along {@link SolidRocketBoosterBlock#FACING}, stopping at the first
-     * obstruction (matching a real exhaust plume, which can't skip past a wall to the clear air beyond it).
-     * {@link #efficiency} is the fraction of {@link #OBSTRUCTION_SCAN_LENGTH} that came back clear, and
-     * scales both displayed/actual thrust and whether exhaust particles spawn at all.
+     * The fuel stack is used up from the far end inwards - the layer furthest from the intake first, so a
+     * stack built upwards on an upright rocket burns down from the top.
      */
-    private void updateObstruction() {
-        Direction nozzle = getBlockState().getValue(SolidRocketBoosterBlock.FACING);
-        BlockPos cursor = getBlockPos();
-        int clear = 0;
-        for (int i = 0; i < OBSTRUCTION_SCAN_LENGTH; i++) {
-            cursor = cursor.relative(nozzle);
-            if (!level.getBlockState(cursor).getCollisionShape(level, cursor).isEmpty()) {
-                break;
+    @Nullable
+    private BlockPos findNextFuelBlock() {
+        Direction intake = getBlockState().getValue(SolidRocketBoosterBlock.FACING).getOpposite();
+        for (int layer = FUEL_STACK_HEIGHT; layer >= 1; layer--) {
+            for (BlockPos pos : fuelLayer(intake, layer)) {
+                if (level.getBlockState(pos).is(ModBlockTags.SOLID_ROCKET_FUEL)) {
+                    return pos.immutable();
+                }
             }
-            clear++;
+        }
+        return null;
+    }
+
+    private void updateFuelCount() {
+        Direction intake = getBlockState().getValue(SolidRocketBoosterBlock.FACING).getOpposite();
+        int count = 0;
+        for (int layer = 1; layer <= FUEL_STACK_HEIGHT; layer++) {
+            for (BlockPos pos : fuelLayer(intake, layer)) {
+                if (level.getBlockState(pos).is(ModBlockTags.SOLID_ROCKET_FUEL)) {
+                    count++;
+                }
+            }
         }
 
-        float newEfficiency = (float) clear / OBSTRUCTION_SCAN_LENGTH;
-        if (Math.abs(newEfficiency - efficiency) > 0.001f) {
-            efficiency = newEfficiency;
+        if (count != fuelBlocks) {
+            fuelBlocks = count;
             setChanged();
             sendData();
         }
     }
 
-    private void startBurningNextFuel() {
-        ItemStack fuel = fuelInventory.getStackInSlot(0);
-        if (fuel.isEmpty()) {
-            return;
-        }
-
-        int burnTime = fuel.getBurnTime(RecipeType.SMELTING);
-        if (burnTime <= 0) {
-            return;
-        }
-
-        fuelInventory.extractItem(0, 1, false);
-        burnTicksTotal = burnTime;
-        burnTicksRemaining = burnTime;
-    }
-
-    /** Hopper-style pull: pulls one valid fuel item from whatever inventory (Item Vault included) sits against the intake face. */
-    private void tryPullFuelFromAdjacentInventory() {
-        if (!fuelInventory.getStackInSlot(0).isEmpty()) {
-            return;
-        }
-
-        Direction intake = getBlockState().getValue(SolidRocketBoosterBlock.FACING).getOpposite();
-        BlockPos neighborPos = getBlockPos().relative(intake);
-        IItemHandler neighborHandler = level.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, intake.getOpposite());
-        if (neighborHandler == null) {
-            return;
-        }
-
-        for (int slot = 0; slot < neighborHandler.getSlots(); slot++) {
-            ItemStack candidate = neighborHandler.extractItem(slot, 1, true);
-            if (candidate.isEmpty() || !isValidFuel(candidate)) {
-                continue;
-            }
-            if (!fuelInventory.insertItem(0, candidate, true).isEmpty()) {
-                continue;
-            }
-
-            ItemStack extracted = neighborHandler.extractItem(slot, 1, false);
-            fuelInventory.insertItem(0, extracted, false);
-            return;
-        }
-    }
-
-    private boolean isValidFuel(ItemStack stack) {
-        return stack.getBurnTime(RecipeType.SMELTING) > 0;
+    /** The 3x3 slice of the fuel column {@code layer} blocks out from the intake face. */
+    private Iterable<BlockPos> fuelLayer(Direction intake, int layer) {
+        BlockPos centre = getBlockPos().relative(intake, layer);
+        return switch (intake.getAxis()) {
+            case X -> BlockPos.betweenClosed(centre.offset(0, -FUEL_STACK_RADIUS, -FUEL_STACK_RADIUS), centre.offset(0, FUEL_STACK_RADIUS, FUEL_STACK_RADIUS));
+            case Y -> BlockPos.betweenClosed(centre.offset(-FUEL_STACK_RADIUS, 0, -FUEL_STACK_RADIUS), centre.offset(FUEL_STACK_RADIUS, 0, FUEL_STACK_RADIUS));
+            case Z -> BlockPos.betweenClosed(centre.offset(-FUEL_STACK_RADIUS, -FUEL_STACK_RADIUS, 0), centre.offset(FUEL_STACK_RADIUS, FUEL_STACK_RADIUS, 0));
+        };
     }
 
     private boolean isBurning() {
         return burnTicksRemaining > 0;
     }
 
-    /** Lets a player feed fuel by right-clicking the intake face directly, no hopper required. */
-    public ItemInteractionResult insertFuelFromPlayer(Player player, InteractionHand hand, ItemStack stack) {
-        if (stack.isEmpty() || !isValidFuel(stack)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    // --- Exhaust: obstruction and heat ---
+
+    /**
+     * Follows the exhaust out from the nozzle to the first thing it hits. How far it got before that sets
+     * {@link #efficiency} (a plume can't skip past a wall to the clear air beyond it), and the thing it hit
+     * is what gets heated.
+     *
+     * The exhaust is followed twice: once through the booster's own grid - the rest of the ship it's built
+     * into, or just the world if it isn't on one - and, on a ship, once more through the world the ship is
+     * flying over, since a ship's blocks and the ground under it aren't in the same place as far as block
+     * positions go. The ship's own blocks are hit first, so the world only matters if those are clear.
+     */
+    private void scanExhaust(boolean firing) {
+        Direction nozzle = getBlockState().getValue(SolidRocketBoosterBlock.FACING);
+        Vec3 centre = Vec3.atCenterOf(getBlockPos());
+        Vec3 step = Vec3.atLowerCornerOf(nozzle.getNormal());
+
+        BlockPos hit = null;
+        int clear = EXHAUST_SCAN_LENGTH;
+        for (int i = 1; i <= EXHAUST_SCAN_LENGTH; i++) {
+            BlockPos pos = getBlockPos().relative(nozzle, i);
+            if (blocksExhaust(pos)) {
+                hit = pos;
+                clear = i - 1;
+                break;
+            }
         }
 
-        ItemStack remainder = fuelInventory.insertItem(0, stack.copy(), false);
-        if (remainder.getCount() == stack.getCount()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        if (hit == null) {
+            Vec3 worldCentre = Sable.HELPER.projectOutOfSubLevel(level, centre);
+            if (!BlockPos.containing(worldCentre).equals(getBlockPos())) {
+                Vec3 worldStep = Sable.HELPER.projectOutOfSubLevel(level, centre.add(step)).subtract(worldCentre);
+                for (int i = 1; i <= EXHAUST_SCAN_LENGTH; i++) {
+                    BlockPos pos = BlockPos.containing(worldCentre.add(worldStep.scale(i)));
+                    if (blocksExhaust(pos)) {
+                        hit = pos;
+                        clear = i - 1;
+                        break;
+                    }
+                }
+            }
         }
 
-        player.setItemInHand(hand, remainder);
-        return ItemInteractionResult.SUCCESS;
+        float newEfficiency = (float) clear / EXHAUST_SCAN_LENGTH;
+        if (Math.abs(newEfficiency - efficiency) > 0.001f) {
+            efficiency = newEfficiency;
+            setChanged();
+            sendData();
+        }
+
+        heat(firing ? hit : null, clear + 1);
+    }
+
+    private boolean blocksExhaust(BlockPos pos) {
+        if (!level.isLoaded(pos)) {
+            return false;
+        }
+        BlockState state = level.getBlockState(pos);
+        return !state.is(ModBlockTags.EXHAUST_PASSES_THROUGH) && !state.getCollisionShape(level, pos).isEmpty();
     }
 
     /**
-     * Lets a player empty-hand right-click the intake face to take back whatever fuel is queued but not
-     * yet burning. Safe to hand out the entire slot: {@link #startBurningNextFuel()} extracts a fuel item
-     * from this handler the instant it starts combusting, so anything still sitting in the slot is by
-     * definition not the piece currently being consumed.
+     * Keeps cooking {@code target} (or starts over, if it's a different block than last time), and turns it
+     * to magma once it's been in the exhaust long enough for how far away it is.
      */
-    public boolean extractUnusedFuel(Player player) {
-        ItemStack queued = fuelInventory.getStackInSlot(0);
-        if (queued.isEmpty()) {
-            return false;
+    private void heat(@Nullable BlockPos target, int distance) {
+        if (target == null || !canTurnToMagma(target)) {
+            heatTarget = null;
+            heatTicks = 0;
+            return;
         }
 
-        ItemStack extracted = fuelInventory.extractItem(0, queued.getCount(), false);
-        if (!player.getInventory().add(extracted)) {
-            player.drop(extracted, false);
+        if (!target.equals(heatTarget)) {
+            heatTarget = target;
+            heatTargetDistance = distance;
+            heatTicks = 0;
+            return;
         }
-        return true;
+
+        heatTicks += EXHAUST_SCAN_INTERVAL;
+        if (heatTicks < HEAT_TICKS_PER_BLOCK_OF_DISTANCE * heatTargetDistance) {
+            return;
+        }
+
+        level.setBlockAndUpdate(target, Blocks.MAGMA_BLOCK.defaultBlockState());
+        level.playSound(null, target, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.6f, 0.8f + level.random.nextFloat() * 0.3f);
+        if (level instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.LAVA, target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5,
+                    8, 0.4, 0.4, 0.4, 0.0);
+        }
+        heatTarget = null;
+        heatTicks = 0;
     }
 
-    /** Only exposed on the intake face - the side opposite the nozzle/{@link SolidRocketBoosterBlock#FACING}. */
-    public IItemHandler getFuelHandler(Direction side) {
-        Direction intake = getBlockState().getValue(SolidRocketBoosterBlock.FACING).getOpposite();
-        return side == null || side == intake ? fuelInventory : null;
+    private boolean canTurnToMagma(BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        return !state.is(Blocks.MAGMA_BLOCK)
+                && !state.is(ModBlockTags.EXHAUST_PROOF)
+                && !state.hasBlockEntity()
+                && state.getDestroySpeed(level, pos) >= 0.0f; // bedrock and the like
     }
 
     /**
@@ -276,19 +332,23 @@ public class SolidRocketBoosterBlockEntity extends SmartBlockEntity
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(tag, registries, clientPacket);
-        tag.put("FuelInventory", fuelInventory.serializeNBT(registries));
         tag.putInt("BurnTicksRemaining", burnTicksRemaining);
         tag.putInt("BurnTicksTotal", burnTicksTotal);
         tag.putFloat("Efficiency", efficiency);
+        if (clientPacket) {
+            tag.putInt("FuelBlocks", fuelBlocks);
+        }
     }
 
     @Override
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
-        fuelInventory.deserializeNBT(registries, tag.getCompound("FuelInventory"));
         burnTicksRemaining = tag.getInt("BurnTicksRemaining");
         burnTicksTotal = tag.getInt("BurnTicksTotal");
         efficiency = tag.contains("Efficiency") ? tag.getFloat("Efficiency") : 1.0f;
+        if (clientPacket) {
+            fuelBlocks = tag.getInt("FuelBlocks");
+        }
     }
 
     // --- Engineer's goggles overlay - same layout as Create Propulsion: Simulated's thruster stats card ---
@@ -336,18 +396,19 @@ public class SolidRocketBoosterBlockEntity extends SmartBlockEntity
                 .style(ChatFormatting.WHITE)
                 .forGoggles(tooltip);
 
-        ItemStack queuedFuel = fuelInventory.getStackInSlot(0);
-        if (isBurning()) {
+        CreateLang.builder()
+                .text("  ")
+                .add(Component.literal(String.valueOf(fuelBlocks)).withStyle(fuelBlocks > 0 ? ChatFormatting.AQUA : ChatFormatting.RED))
+                .add(Component.translatable("gui.goggles.solid_rocket_booster.fuel_blocks").withStyle(ChatFormatting.GRAY))
+                .forGoggles(tooltip);
+
+        // What's burning now plus everything still stacked up - an upper bound when boosters share a stack.
+        int totalBurnTicks = burnTicksRemaining + fuelBlocks * Config.SOLID_ROCKET_BOOSTER_FUEL_BLOCK_BURN_TICKS.get();
+        if (totalBurnTicks > 0) {
             CreateLang.builder()
                     .text("  ")
-                    .add(Component.literal(formatBurnTime(burnTicksRemaining)).withStyle(ChatFormatting.AQUA))
+                    .add(Component.literal(formatBurnTime(totalBurnTicks)).withStyle(ChatFormatting.AQUA))
                     .add(Component.translatable("gui.goggles.solid_rocket_booster.burn_time").withStyle(ChatFormatting.GRAY))
-                    .forGoggles(tooltip);
-        }
-        if (!queuedFuel.isEmpty()) {
-            CreateLang.builder()
-                    .text("  ")
-                    .add(queuedFuel.getHoverName().copy().withStyle(ChatFormatting.GRAY))
                     .forGoggles(tooltip);
         }
 

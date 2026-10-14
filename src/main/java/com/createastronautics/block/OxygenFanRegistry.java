@@ -3,6 +3,7 @@ package com.createastronautics.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,16 +54,21 @@ public final class OxygenFanRegistry {
     }
 
     public static boolean isOxygenated(Level level, BlockPos pos) {
+        return findSupplier(level, pos) != null;
+    }
+
+    /** @return a fan currently keeping {@code pos} breathable, or {@code null} if nothing is. */
+    @Nullable
+    public static OxygenFanBlockEntity findSupplier(Level level, BlockPos pos) {
         Set<OxygenFanBlockEntity> fans = FANS_BY_DIMENSION.get(level.dimension());
         if (fans == null) {
-            return false;
+            return null;
         }
         for (OxygenFanBlockEntity fan : fans) {
-            OxygenRoom.Room room = fan.getOxygenatedRoom();
-            if (room != null && room.contains(pos)) {
-                return true;
+            if (fan.isSupplying(pos)) {
+                return fan;
             }
         }
-        return false;
+        return null;
     }
 }

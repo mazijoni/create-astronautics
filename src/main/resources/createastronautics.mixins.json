@@ -5,9 +5,22 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "LevelPlotAccessor",
-    "ServerLevelPlotAccessor"
+    "ServerLevelPlotAccessor",
+    "gravity.EntityGravityMixin",
+    "tab.CreativeModeTabMixin"
   ],
   "client": [
+    "MinecraftMixin",
+    "gravity.ParticleGravityMixin",
+    "gravity.ParticleGravityMixin$BubblePopParticleMixin",
+    "gravity.ParticleGravityMixin$CampfireSmokeParticleMixin",
+    "gravity.ParticleGravityMixin$CherryParticleMixin",
+    "gravity.ParticleGravityMixin$DripParticleMixin",
+    "gravity.ParticleGravityMixin$FallingDustParticleMixin",
+    "gravity.ParticleGravityMixin$SquidInkParticleMixin",
+    "gravity.ParticleGravityMixin$WakeParticleMixin",
+    "gravity.ParticleGravityMixin$WaterDropParticleMixin",
+    "tab.CreativeModeInventoryScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

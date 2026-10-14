@@ -1,0 +1,484 @@
+{
+    "variants": {
+        "facing=south,powered=false,signal=0": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=1": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=2": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=3": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=4": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=5": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=6": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=7": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=8": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=9": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=10": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=11": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=12": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=13": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=14": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=false,signal=15": {
+            "model": "createastronautics:block/redstone_regulator/block"
+        },
+        "facing=south,powered=true,signal=0": {
+            "model": "createastronautics:block/redstone_regulator/block_powered"
+        },
+        "facing=south,powered=true,signal=1": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=2": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=3": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=4": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=5": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=6": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=7": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=8": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=9": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=10": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=11": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=12": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=13": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=14": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=south,powered=true,signal=15": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering"
+        },
+        "facing=west,powered=false,signal=0": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=1": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=2": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=3": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=4": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=5": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=6": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=7": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=8": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=9": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=10": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=11": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=12": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=13": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=14": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=false,signal=15": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=0": {
+            "model": "createastronautics:block/redstone_regulator/block_powered",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=1": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=2": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=3": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=4": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=5": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=6": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=7": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=8": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=9": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=10": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=11": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=12": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=13": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=14": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=west,powered=true,signal=15": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 90
+        },
+        "facing=north,powered=false,signal=0": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=1": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=2": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=3": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=4": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=5": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=6": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=7": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=8": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=9": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=10": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=11": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=12": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=13": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=14": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=false,signal=15": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=0": {
+            "model": "createastronautics:block/redstone_regulator/block_powered",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=1": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=2": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=3": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=4": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=5": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=6": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=7": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=8": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=9": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=10": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=11": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=12": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=13": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=14": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=north,powered=true,signal=15": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 180
+        },
+        "facing=east,powered=false,signal=0": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=1": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=2": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=3": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=4": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=5": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=6": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=7": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=8": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=9": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=10": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=11": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=12": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=13": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=14": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=false,signal=15": {
+            "model": "createastronautics:block/redstone_regulator/block",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=0": {
+            "model": "createastronautics:block/redstone_regulator/block_powered",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=1": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=2": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=3": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=4": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=5": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=6": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=7": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=8": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=9": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=10": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=11": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=12": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=13": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=14": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        },
+        "facing=east,powered=true,signal=15": {
+            "model": "createastronautics:block/redstone_regulator/block_powered_powering",
+            "y": 270
+        }
+    }
+}

@@ -13,7 +13,13 @@
         "createastronautics:moon_slate_coal_ore",
         "createastronautics:moon_iron_ore",
         "createastronautics:moon_slate_iron_ore",
-        "createastronautics:moon_astrium_ore",
-        "createastronautics:moon_slate_astrium_ore"
+        "createastronautics:moon_crystallite_ore",
+        "createastronautics:moon_slate_crystallite_ore",
+        "createastronautics:titanium_casing",
+        "createastronautics:oxygen_detector",
+        "createastronautics:titanium_encased_shaft",
+        "createastronautics:titanium_encased_cogwheel",
+        "createastronautics:titanium_encased_large_cogwheel",
+        "createastronautics:titanium_encased_fluid_pipe"
     ]
 }

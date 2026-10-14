@@ -1,0 +1,9 @@
+{
+    "parent": "createastronautics:block/oxygen_detector/block",
+    "textures": {
+        "front": "createastronautics:block/oxygen_detector/front_detecting",
+        "back": "createastronautics:block/oxygen_detector/back_detecting",
+        "side": "createastronautics:block/oxygen_detector/side_detecting",
+        "particle": "createastronautics:block/oxygen_detector/back_detecting"
+    }
+}

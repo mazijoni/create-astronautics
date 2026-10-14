@@ -1,0 +1,17 @@
+{
+    "values": [
+        "createastronautics:moon_dust",
+        "createastronautics:lunar_gravel",
+        "createastronautics:dead_grass",
+        "createastronautics:moonstone_block",
+        "createastronautics:moon_coal_ore",
+        "createastronautics:moon_slate_coal_ore",
+        "createastronautics:moon_iron_ore",
+        "createastronautics:moon_slate_iron_ore",
+        "createastronautics:moon_crystallite_ore",
+        "createastronautics:moon_slate_crystallite_ore",
+        "createastronautics:oxygen_fan",
+        "createastronautics:oxygen_detector",
+        "createastronautics:titanium_encased_fluid_pipe"
+    ]
+}

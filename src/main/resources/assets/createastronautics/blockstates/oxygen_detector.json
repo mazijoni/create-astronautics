@@ -1,0 +1,50 @@
+{
+    "variants": {
+        "detecting=false,facing=north": {
+            "model": "createastronautics:block/oxygen_detector/block"
+        },
+        "detecting=false,facing=east": {
+            "model": "createastronautics:block/oxygen_detector/block",
+            "y": 90
+        },
+        "detecting=false,facing=south": {
+            "model": "createastronautics:block/oxygen_detector/block",
+            "y": 180
+        },
+        "detecting=false,facing=west": {
+            "model": "createastronautics:block/oxygen_detector/block",
+            "y": 270
+        },
+        "detecting=false,facing=down": {
+            "model": "createastronautics:block/oxygen_detector/block",
+            "x": 90
+        },
+        "detecting=false,facing=up": {
+            "model": "createastronautics:block/oxygen_detector/block",
+            "x": 270
+        },
+        "detecting=true,facing=north": {
+            "model": "createastronautics:block/oxygen_detector/block_detecting"
+        },
+        "detecting=true,facing=east": {
+            "model": "createastronautics:block/oxygen_detector/block_detecting",
+            "y": 90
+        },
+        "detecting=true,facing=south": {
+            "model": "createastronautics:block/oxygen_detector/block_detecting",
+            "y": 180
+        },
+        "detecting=true,facing=west": {
+            "model": "createastronautics:block/oxygen_detector/block_detecting",
+            "y": 270
+        },
+        "detecting=true,facing=down": {
+            "model": "createastronautics:block/oxygen_detector/block_detecting",
+            "x": 90
+        },
+        "detecting=true,facing=up": {
+            "model": "createastronautics:block/oxygen_detector/block_detecting",
+            "x": 270
+        }
+    }
+}

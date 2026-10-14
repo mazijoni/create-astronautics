@@ -1,0 +1,9 @@
+{
+    "createastronautics:oxygen_detector": {
+        "default": "red",
+        "states": {
+            "detecting=false": "red",
+            "detecting=true": "light_blue"
+        }
+    }
+}

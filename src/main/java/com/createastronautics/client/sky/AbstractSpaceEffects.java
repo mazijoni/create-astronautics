@@ -49,7 +49,12 @@ public abstract class AbstractSpaceEffects extends DimensionSpecialEffects {
         poseStack.mulPose(modelViewMatrix);
 
         RealisticStarField.render(poseStack, projectionMatrix, setupFog, 1.0F);
+        renderCelestialBodies(poseStack, camera);
 
         return true;
+    }
+
+    /** Anything drawn in front of the starfield - nothing by default. */
+    protected void renderCelestialBodies(PoseStack poseStack, Camera camera) {
     }
 }

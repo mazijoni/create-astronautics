@@ -1,0 +1,23 @@
+{
+    "type": "create:mixing",
+    "heat_requirement": "superheated",
+    "ingredients": [
+        {
+            "tag": "c:ingots/iron"
+        },
+        {
+            "tag": "c:ingots/iron"
+        },
+        {
+            "item": "minecraft:quartz"
+        },
+        {
+            "item": "createastronautics:carbon_dust"
+        }
+    ],
+    "results": [
+        {
+            "id": "createastronautics:titanium_ingot"
+        }
+    ]
+}

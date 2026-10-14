@@ -1,8 +1,5 @@
 {
     "values": [
-        "#minecraft:doors",
-        "#minecraft:trapdoors",
-        "#minecraft:fence_gates",
         "create:fluid_tank"
     ]
 }

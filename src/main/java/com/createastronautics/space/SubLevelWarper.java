@@ -68,7 +68,6 @@ public class SubLevelWarper {
         HashMap<UUID, CompoundTag> subLevelTags = new HashMap<>();
         HashMap<UUID, ServerLevelPlot> subLevelPlots = new HashMap<>();
         HashMap<UUID, Set<Entity>> visitedEntities = new HashMap<>();
-
         for (SubLevel subLevel : compoundSubLevel) {
 
             ServerSubLevel serverSubLevel = (ServerSubLevel) subLevel;
@@ -77,7 +76,7 @@ public class SubLevelWarper {
             var boxY = subLevel.boundingBox().height();
             var boxZ = subLevel.boundingBox().length();
             AABB box = new AABB(-boxX / 2 + center.x, -boxY / 2 + center.y, -boxZ / 2 + center.z, boxX / 2 + center.x, boxY / 2 + center.y, boxZ / 2 + center.z);
-            box.inflate(1.0);
+            box = box.inflate(1.0);
 
             List<Entity> candidates = sourceContainer.getLevel().getEntities(null, box);
             visitedEntities.put(subLevel.getUniqueId(), new HashSet<>(candidates));
@@ -98,8 +97,9 @@ public class SubLevelWarper {
             ServerSubLevel copy = (ServerSubLevel) destinationContainer.allocateNewSubLevel(pose);
             subLevelTags.put(subLevel.getUniqueId(), tag);
 
-            Vec3i start = serverSubLevel.getPlot().getCenterBlock().offset(0, sourceContainer.getLevel().dimensionType().minY(), 0);
-            Vec3i end = copy.getPlot().getCenterBlock().offset(0, destinationContainer.getLevel().dimensionType().minY(), 0);
+            // No minY correction on top - see SubLevelTemplate#save.
+            Vec3i start = serverSubLevel.getPlot().getCenterBlock();
+            Vec3i end = copy.getPlot().getCenterBlock();
             Vec3i offset = end.subtract(start);
 
             oldToNew.put(subLevel.getUniqueId(), Pair.of(copy.getUniqueId(), offset));

@@ -7,31 +7,33 @@ import com.simibubi.create.content.kinetics.fan.AirCurrent;
 import com.simibubi.create.content.kinetics.fan.EncasedFanBlock;
 import com.simibubi.create.content.kinetics.fan.EncasedFanBlockEntity;
 import com.simibubi.create.content.kinetics.fan.NozzleBlock;
+import com.simibubi.create.foundation.utility.CreateLang;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Locale;
 
 /**
  * Adds a small oxygen-only fluid buffer to the otherwise-untouched {@link EncasedFanBlockEntity}, exposed on
@@ -39,27 +41,24 @@ import java.util.Set;
  * block's current {@code FACING} and {@link OxygenFanBlock#PIPE_ROTATION}. The tank only ever accepts
  * fluid, never gives it back out through a pipe - see the {@code drain} overrides below.
  *
- * On the Moon and in Deep Space, a running fan with a {@code create:nozzle} on its outlet and oxygen in its
- * tank also fills whatever sealed room it's blowing into with breathable air, consuming its own tank while
- * it does - see {@link #updateOxygenatedRoom}, {@link #candidateOutlets}. Any side of the nozzle chain that
- * opens onto a room counts, not just the straight-through face, so a nozzle poking into a corner or alcove
- * still supplies whatever room it actually touches. Several fans blowing into the same room pool their capacity
- * (see {@link #totalCapacityServicing}), so a room too big for any one fan alone can still work with enough
- * of them. {@link OxygenFanRegistry} is how {@link com.createastronautics.PlayerEnvironmentHandler} finds
- * out any given position is inside one of these rooms, checked live rather than cached per player. The fan
- * never pushes anything itself (see {@link OxygenAirCurrent}), and neither does the nozzle - see
+ * On the Moon and in Deep Space, a running fan with a {@code create:nozzle} on its outlet keeps whatever
+ * closed space that nozzle sits in breathable, as long as it has oxygen to do it with. Which blocks that
+ * space covers is worked out by its {@link OxygenSealer}, the same way Northstar-Redux's Oxygen Sealer does
+ * it; the oxygen bookkeeping in {@link #tick} follows Northstar's {@code OxygenSealerBlockEntity} too - a
+ * small constant cost per sealed block, plus a cost per creature actually breathing the air (see
+ * {@link #drainOxygen}). Several fans blowing into the same space pool their capacity and split that cost
+ * (see {@link #contributedCapacity}, {@link #ownShare}).
+ *
+ * The sealer runs on both sides from state that's synced anyway (facing, speed, the blocks around it), so
+ * the client can draw mist, leak particles and the goggle readout without any room data being sent to it.
+ * Whether the room is actually being supplied ({@link #active}) is decided on the server alone and synced.
+ * {@link OxygenFanRegistry} is how everything else asks whether a position is breathable. The fan never
+ * pushes anything itself (see {@link OxygenAirCurrent}), and neither does the nozzle - see
  * {@link #getAirCurrent}.
  */
 public class OxygenFanBlockEntity extends EncasedFanBlockEntity {
     public static final int TANK_CAPACITY_MB = 1000;
 
-    // How often the sealed-room flood fill re-runs - it's the most expensive thing this block does, kept
-    // short so leaving a room (or a door slamming shut) is noticed quickly rather than a second or more
-    // later.
-    private static final int ROOM_UPDATE_INTERVAL_TICKS = 5;
-    // Hard cap purely to bound the cost of a single flood fill - a real opening to the vacuum blows straight
-    // past this almost immediately, so this only ever matters for genuinely enormous sealed builds.
-    private static final int ROOM_SAFETY_CEILING = 4096;
     // How many blocks of room a single fan's own capacity covers, scaling with its current RPM.
     private static final float ROOM_BLOCKS_PER_RPM = 1.5F;
     private static final int MIN_ROOM_BLOCKS = 27;
@@ -71,12 +70,14 @@ public class OxygenFanBlockEntity extends EncasedFanBlockEntity {
     private static final double SEAL_BREAK_PARTICLE_SPREAD = 0.8;
     private static final double SEAL_BREAK_PARTICLE_SPEED = 0.35;
     private static final double SEAL_BREAK_PARTICLE_JITTER = 0.06;
-    // How much oxygen a room burns through per second per block of its actual current size - not a fan's
-    // own potential capacity - so a fan quietly maintaining a small closet costs far less than one straining
-    // to keep a cathedral-sized room breathable. When several fans share one room, each pays a share of that
-    // total proportional to its own capacity among them (see ownDrainShare/totalCapacityServicing).
-    private static final int OXYGEN_DRAIN_INTERVAL_TICKS = 20;
-    private static final float OXYGEN_DRAIN_MB_PER_ROOM_BLOCK = 0.03F;
+    // Oxygen cost per tick: a little for every sealed block just to keep the room pressurised (so a closet
+    // costs far less than a cathedral), plus more for every creature breathing in it. A 100-block room
+    // with one person in it gets through a full tank in about 80 seconds.
+    private static final float PASSIVE_DRAIN_MB_PER_BLOCK = 0.0015F;
+    public static final float BREATHING_DRAIN_MB = 0.05F;
+    // Tank level and usage only matter to the client for the goggle readout, so they're synced at most this
+    // often rather than every time a millibucket is used.
+    private static final int SYNC_INTERVAL_TICKS = 10;
 
     private static final ResourceLocation SEAL_BREAK_SOUND_ID = ResourceLocation.fromNamespaceAndPath("aeronautics", "block.steam_vent.open");
     // Aeronautics' own GustEntity (dev.eriksonn.aeronautics.content.blocks.hot_air.gust.GustEntity, see
@@ -107,6 +108,7 @@ public class OxygenFanBlockEntity extends EncasedFanBlockEntity {
         @Override
         protected void onContentsChanged() {
             setChanged();
+            syncPending = true;
         }
 
         @Override
@@ -120,20 +122,22 @@ public class OxygenFanBlockEntity extends EncasedFanBlockEntity {
         }
     };
 
-    @Nullable
-    private OxygenRoom.Room oxygenatedRoom;
-    // The last room this fan actually found sealed, kept around purely so that if it breaks, findBreach can
-    // compare against it to find the one boundary face that changed - see updateOxygenatedRoom.
-    @Nullable
-    private OxygenRoom.Room lastSealedRoom;
-    private boolean physicallySealed;
-    private int roomUpdateCooldown;
-    private int oxygenDrainCooldown;
-    // This fan's share of the combined capacity servicing its current room (see totalCapacityServicing),
-    // cached from the last room update rather than recomputed on every drain tick - the drain interval
-    // doesn't line up with the room-update interval, and the room's serviced-by set doesn't change fast
-    // enough to need re-deriving it more often than the room itself is re-checked.
-    private int lastServicingCapacityTotal;
+    private final OxygenSealer sealer = new OxygenSealer() {
+        @Override
+        protected int extensionCapacity(Level level, BlockPos pos) {
+            return contributedCapacity(level, pos);
+        }
+    };
+    private final BlockPos.MutableBlockPos particlePos = new BlockPos.MutableBlockPos();
+
+    // Whether the sealed room is actually being kept breathable right now - decided server-side, synced.
+    private boolean active;
+    // This fan's current oxygen use in mB/tick - server-side, synced for the goggle readout.
+    private float drain;
+    private float pendingDrain;
+    private float breathingDrain;
+    private boolean syncPending;
+    private int syncCooldown;
 
     public OxygenFanBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -171,146 +175,185 @@ public class OxygenFanBlockEntity extends EncasedFanBlockEntity {
         return null;
     }
 
-    @Nullable
-    public OxygenRoom.Room getOxygenatedRoom() {
-        return oxygenatedRoom;
+    /** @return whether {@code pos} is inside the room this fan is currently keeping breathable. */
+    public boolean isSupplying(BlockPos pos) {
+        return active && sealer.contains(pos);
+    }
+
+    /** Called for every creature breathing this fan's air, once per tick each - see {@link #BREATHING_DRAIN_MB}. */
+    public void drainOxygen(float amountMb) {
+        breathingDrain += amountMb;
     }
 
     @Override
     public void tick() {
         super.tick();
+        if (level == null) {
+            return;
+        }
 
-        if (level != null && !level.isClientSide) {
+        boolean server = !level.isClientSide;
+        if (server) {
             // Re-registering every tick is cheap (a hash-set add that's a no-op once already present) and
             // avoids depending on exactly when/whether a load hook fires for a block entity restored from
             // disk - simpler than getting that lifecycle exactly right.
             OxygenFanRegistry.register(level, this);
+            syncIfPending();
+        }
 
-            if (oxygenatedRoom != null) {
-                if (oxygenDrainCooldown-- <= 0) {
-                    oxygenDrainCooldown = OXYGEN_DRAIN_INTERVAL_TICKS;
-                    consumeOxygen(ownDrainShare());
-                }
-            } else {
-                oxygenDrainCooldown = 0;
+        BlockPos origin = sealOrigin();
+        if (origin == null) {
+            sealer.reset();
+            setActive(false);
+            return;
+        }
+
+        boolean wasSealed = sealer.isSealed();
+        boolean completed = sealer.processSeal(level, origin, ownCapacity());
+        if (server && completed && wasSealed && sealer.hasLeak()) {
+            onSealBroken();
+        }
+
+        if (!sealer.isSealed()) {
+            // Only worth pointing out where the air is getting out if there's any air to lose - and a room
+            // that's merely too big has no hole to point at.
+            if (sealer.hasLeak() && !tank.isEmpty()) {
+                sealer.renderLeakPath(level);
             }
+            setActive(false);
+            return;
         }
 
-        if (roomUpdateCooldown-- <= 0) {
-            roomUpdateCooldown = ROOM_UPDATE_INTERVAL_TICKS;
-            updateOxygenatedRoom();
-        }
-
-        if (level != null && level.isClientSide && oxygenatedRoom != null) {
+        if (server) {
+            consumeOxygen();
+        } else if (active) {
             spawnOxygenParticles();
         }
     }
 
     /**
-     * Every open position touching the fan's nozzle chain - a candidate for the flood fill in
-     * {@link #updateOxygenatedRoom} to start from. Not just the one straight out the last nozzle's front
-     * face: a nozzle poking into a room at a corner or alcove, where only one of its <em>side</em> faces
-     * actually opens onto the room and the straight-through face is blocked, still ought to supply that
-     * room, so every side of every nozzle segment in the chain is offered up - {@link OxygenRoom#fill}
-     * itself is what actually rejects the ones that aren't real open air (occupied by the next nozzle
-     * segment, the fan, a solid wall, whatever).
+     * Where the sealer's flood starts: the nozzle on the fan's outlet. The air is taken to come out of
+     * every open side of the nozzle, not just straight ahead, so one poking into a corner or alcove still
+     * supplies whatever room it actually touches.
      *
-     * <p>A fan only contributes to a room at all if it has oxygen, is spinning, is on the Moon or in Deep
-     * Space, and - per {@code create:nozzle} being how the air actually gets projected into a room - has one
-     * fitted directly to its outlet; none of that holds, this is empty.
+     * @return {@code null} if this fan can't be pressurising anything at all right now - it isn't spinning,
+     * has no nozzle fitted, or is somewhere the air is already breathable.
      */
-    private List<BlockPos> candidateOutlets() {
-        if (level == null || tank.isEmpty() || getSpeed() == 0.0F) {
-            return List.of();
-        }
-        if (level.dimension() != ModDimensions.MOON && level.dimension() != ModDimensions.DEEP_SPACE) {
-            return List.of();
+    @Nullable
+    private BlockPos sealOrigin() {
+        if (getSpeed() == 0.0F || !isInVacuum()) {
+            return null;
         }
 
-        Direction facing = getBlockState().getValue(EncasedFanBlock.FACING);
-        BlockPos nozzle = getBlockPos().relative(facing);
-        if (!(level.getBlockState(nozzle).getBlock() instanceof NozzleBlock)) {
-            return List.of();
-        }
+        BlockPos nozzle = getBlockPos().relative(getBlockState().getValue(EncasedFanBlock.FACING));
+        return hasNozzle() ? nozzle : null;
+    }
 
-        List<BlockPos> candidates = new ArrayList<>();
-        while (level.getBlockState(nozzle).getBlock() instanceof NozzleBlock) {
-            for (Direction direction : Direction.values()) {
-                candidates.add(nozzle.relative(direction));
-            }
-            nozzle = nozzle.relative(facing);
-        }
-        return candidates;
+    private boolean isInVacuum() {
+        return level.dimension() == ModDimensions.MOON || level.dimension() == ModDimensions.DEEP_SPACE;
+    }
+
+    private boolean hasNozzle() {
+        BlockPos nozzle = getBlockPos().relative(getBlockState().getValue(EncasedFanBlock.FACING));
+        return level.getBlockState(nozzle).getBlock() instanceof NozzleBlock;
+    }
+
+    private int ownCapacity() {
+        return Mth.clamp(Math.round(Math.abs(getSpeed()) * ROOM_BLOCKS_PER_RPM), MIN_ROOM_BLOCKS, MAX_ROOM_BLOCKS);
     }
 
     /**
-     * Floods outward from this fan's nozzle outlet to find the sealed room it's supplying, if any, then
-     * checks whether every fan contributing to that same room (see {@link #totalCapacityServicing}) can
-     * cover its actual size. Runs identically on both sides - the block entity's synced
-     * {@code FACING}/speed/tank state is all this needs, so client and server always agree on the same room
-     * without any extra networking - but the seal-broken effect and player bookkeeping only ever happen
-     * once, server-side, and as soon as the break is detected rather than waiting for anything.
+     * The capacity another fan adds to this one's, if {@code pos} - somewhere this fan's flood just reached
+     * - is the nozzle of a different fan that's running and has oxygen of its own.
      */
-    private void updateOxygenatedRoom() {
-        OxygenRoom.Room sealedRoom = null;
-        for (BlockPos candidate : candidateOutlets()) {
-            sealedRoom = OxygenRoom.fill(level, candidate, ROOM_SAFETY_CEILING);
-            if (sealedRoom != null) {
-                break;
+    private int contributedCapacity(Level level, BlockPos pos) {
+        if (!(level.getBlockState(pos).getBlock() instanceof NozzleBlock)) {
+            return 0;
+        }
+
+        for (Direction direction : Direction.values()) {
+            if (level.getBlockEntity(pos.relative(direction)) instanceof OxygenFanBlockEntity fan && fan != this
+                    && fan.getBlockState().getValue(EncasedFanBlock.FACING) == direction.getOpposite()
+                    && fan.getSpeed() != 0.0F && !fan.tank.isEmpty()) {
+                return fan.ownCapacity();
             }
         }
+        return 0;
+    }
 
-        int servicingCapacity = sealedRoom != null ? totalCapacityServicing(sealedRoom) : 0;
-        oxygenatedRoom = sealedRoom != null && servicingCapacity >= sealedRoom.positions().size() ? sealedRoom : null;
-        lastServicingCapacityTotal = servicingCapacity;
-
-        boolean wasSealed = physicallySealed;
-        physicallySealed = sealedRoom != null;
-
-        if (level != null && !level.isClientSide && wasSealed && !physicallySealed) {
-            OxygenRoom.Breach breach = lastSealedRoom != null ? OxygenRoom.findBreach(level, lastSealedRoom) : null;
-            onSealBroken(breach);
-        }
-
-        if (sealedRoom != null) {
-            lastSealedRoom = sealedRoom;
-        }
+    /** @return the fraction of the room's oxygen cost this fan pays - its own capacity out of everything servicing the room. */
+    private float ownShare() {
+        int own = ownCapacity();
+        return (float) own / (own + sealer.getExtraVolume());
     }
 
     /**
-     * Sums the room capacity of every fan (this one included) that's eligible and actually blowing into
-     * {@code room} - found by checking the blocks directly next to the room's interior for other oxygen
-     * fans, rather than needing any kind of shared registry between them.
+     * Costs accumulate as a fraction and are taken from the tank in whole millibuckets; the room only
+     * counts as supplied while the tank is keeping up with what's owed.
      */
-    private int totalCapacityServicing(OxygenRoom.Room room) {
-        Set<BlockPos> checkedNeighbors = new HashSet<>();
-        int total = 0;
-        for (BlockPos pos : room.positions()) {
-            for (Direction direction : Direction.values()) {
-                BlockPos neighbor = pos.relative(direction);
-                if (!checkedNeighbors.add(neighbor)) {
-                    continue;
-                }
-                if (level.getBlockEntity(neighbor) instanceof OxygenFanBlockEntity fan) {
-                    if (fan.candidateOutlets().stream().anyMatch(room::contains)) {
-                        total += OxygenRoom.maxSizeForSpeed(fan.getSpeed(), ROOM_BLOCKS_PER_RPM, MIN_ROOM_BLOCKS, MAX_ROOM_BLOCKS);
-                    }
-                }
-            }
+    private void consumeOxygen() {
+        if (tank.isEmpty()) {
+            setActive(false);
+            return;
         }
-        return total;
+
+        int drainable = Math.min((int) pendingDrain, tank.getFluidAmount());
+        if (drainable > 0) {
+            FluidStack remaining = tank.getFluid().copy();
+            remaining.shrink(drainable);
+            tank.setFluid(remaining);
+            pendingDrain -= drainable;
+            setChanged();
+            syncPending = true;
+        }
+
+        setActive(pendingDrain < 1.0F);
+        if (!active) {
+            return;
+        }
+
+        float newDrain = (sealer.getSealedBlockCount() * PASSIVE_DRAIN_MB_PER_BLOCK + breathingDrain) * ownShare();
+        if (Math.abs(newDrain - drain) > 0.0005F) {
+            drain = newDrain;
+            syncPending = true;
+        }
+        pendingDrain += newDrain;
+        breathingDrain = 0.0F;
     }
 
-    /** @param breach where and which way the room actually broke open (see {@link OxygenRoom#findBreach}), or {@code null} to fall back to this fan's own position/facing. */
-    private void onSealBroken(@Nullable OxygenRoom.Breach breach) {
+    private void setActive(boolean nowActive) {
+        if (active == nowActive || level == null || level.isClientSide) {
+            return;
+        }
+        active = nowActive;
+        if (!nowActive) {
+            drain = 0.0F;
+        }
+        setChanged();
+        sendData();
+    }
+
+    private void syncIfPending() {
+        if (syncCooldown > 0) {
+            syncCooldown--;
+        } else if (syncPending) {
+            syncPending = false;
+            syncCooldown = SYNC_INTERVAL_TICKS;
+            sendData();
+        }
+    }
+
+    private void onSealBroken() {
         // Several fans in one shared room all notice the same break on the same update cycle - only the
         // first to get here actually announces it, so it doesn't turn into a wall of simultaneous sounds.
         if (!OxygenFanRegistry.tryAnnounceSealBreak(level, level.getGameTime())) {
             return;
         }
 
-        BlockPos pos = breach != null ? breach.pos() : getBlockPos();
-        Direction direction = breach != null ? breach.direction() : getBlockState().getValue(EncasedFanBlock.FACING);
+        BlockPos breachPos = sealer.getBreachPos();
+        Direction breachDirection = sealer.getBreachDirection();
+        BlockPos pos = breachPos != null ? breachPos : getBlockPos();
+        Direction direction = breachDirection != null ? breachDirection : getBlockState().getValue(EncasedFanBlock.FACING);
 
         SoundEvent sound = BuiltInRegistries.SOUND_EVENT.get(SEAL_BREAK_SOUND_ID);
         level.playSound(null, pos, sound != null ? sound : SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -364,30 +407,12 @@ public class OxygenFanBlockEntity extends EncasedFanBlockEntity {
         }
     }
 
-    /** @return this fan's share of its currently-oxygenated room's per-interval oxygen cost, proportional to its own capacity among every fan servicing that room. */
-    private int ownDrainShare() {
-        int roomSize = oxygenatedRoom.positions().size();
-        int ownCapacity = OxygenRoom.maxSizeForSpeed(getSpeed(), ROOM_BLOCKS_PER_RPM, MIN_ROOM_BLOCKS, MAX_ROOM_BLOCKS);
-        double share = lastServicingCapacityTotal > 0 ? (double) ownCapacity / lastServicingCapacityTotal : 1.0;
-        return (int) Math.max(1, Math.round(roomSize * OXYGEN_DRAIN_MB_PER_ROOM_BLOCK * share));
-    }
-
-    private void consumeOxygen(int amountMb) {
-        FluidStack current = tank.getFluid();
-        if (current.isEmpty()) {
-            return;
-        }
-        FluidStack shrunk = current.copy();
-        shrunk.shrink(amountMb);
-        tank.setFluid(shrunk);
-    }
-
     private void spawnOxygenParticles() {
         for (int i = 0; i < PARTICLES_PER_TICK; i++) {
-            BlockPos pos = oxygenatedRoom.randomPosition(level.random);
-            double x = pos.getX() + level.random.nextDouble();
-            double y = pos.getY() + level.random.nextDouble();
-            double z = pos.getZ() + level.random.nextDouble();
+            sealer.randomSealedPosition(level.random, particlePos);
+            double x = particlePos.getX() + level.random.nextDouble();
+            double y = particlePos.getY() + level.random.nextDouble();
+            double z = particlePos.getZ() + level.random.nextDouble();
             level.addParticle(ModParticleTypes.OXYGEN_MIST.get(), x, y, z, 0.0, 0.01, 0.0);
         }
     }
@@ -396,6 +421,10 @@ public class OxygenFanBlockEntity extends EncasedFanBlockEntity {
     public void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(tag, registries, clientPacket);
         tag.put("OxygenTank", tank.writeToNBT(registries, new CompoundTag()));
+        if (clientPacket) {
+            tag.putBoolean("OxygenActive", active);
+            tag.putFloat("OxygenDrain", drain);
+        }
     }
 
     @Override
@@ -404,5 +433,130 @@ public class OxygenFanBlockEntity extends EncasedFanBlockEntity {
         if (tag.contains("OxygenTank")) {
             tank.readFromNBT(registries, tag.getCompound("OxygenTank"));
         }
+        if (clientPacket) {
+            active = tag.getBoolean("OxygenActive");
+            drain = tag.getFloat("OxygenDrain");
+        }
+    }
+
+    // --- Engineer's goggles overlay ---
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        super.addToGoggleTooltip(tooltip, isPlayerSneaking);
+
+        CreateLang.builder()
+                .add(Component.translatable("gui.goggles.oxygen_fan.title"))
+                .style(ChatFormatting.WHITE)
+                .forGoggles(tooltip);
+
+        CreateLang.builder()
+                .add(Component.translatable("gui.goggles.oxygen_fan.status"))
+                .text(": ")
+                .add(goggleStatus())
+                .forGoggles(tooltip);
+
+        boolean canSeal = getSpeed() != 0.0F && isInVacuum() && hasNozzle();
+        int ownCapacity = ownCapacity();
+        int totalCapacity = ownCapacity + sealer.getExtraVolume();
+
+        if (canSeal) {
+            // A closed room has a size worth showing against the capacity whether or not it fits; with a
+            // leak there's no room to measure, so only the capacity is shown.
+            boolean enclosed = sealer.isSealed() || sealer.isTooBig();
+            CreateLang.builder()
+                    .add(Component.translatable(sealer.isSealed() ? "gui.goggles.oxygen_fan.room_size"
+                            : sealer.isTooBig() ? "gui.goggles.oxygen_fan.room_too_big_size"
+                            : "gui.goggles.oxygen_fan.max_room_size"))
+                    .style(ChatFormatting.GRAY)
+                    .forGoggles(tooltip);
+            MutableComponent size = enclosed
+                    ? Component.literal(String.valueOf(sealer.getEnclosedBlockCount())).withStyle(sealer.isTooBig() ? ChatFormatting.RED : ChatFormatting.AQUA)
+                            .append(Component.literal(" / " + totalCapacity).withStyle(ChatFormatting.DARK_GRAY))
+                    : Component.literal(String.valueOf(totalCapacity)).withStyle(ChatFormatting.AQUA);
+            CreateLang.builder()
+                    .add(size)
+                    .add(Component.translatable("gui.goggles.oxygen_fan.blocks").withStyle(ChatFormatting.GRAY))
+                    .forGoggles(tooltip, 1);
+        }
+
+        if (active) {
+            CreateLang.builder()
+                    .add(Component.translatable("gui.goggles.oxygen_fan.usage"))
+                    .style(ChatFormatting.GRAY)
+                    .forGoggles(tooltip);
+            CreateLang.builder()
+                    .add(Component.literal(String.format(Locale.ROOT, "%.2f", drain * 20.0F)).withStyle(ChatFormatting.GOLD))
+                    .add(Component.translatable("gui.goggles.oxygen_fan.mb_per_second").withStyle(ChatFormatting.GRAY))
+                    .forGoggles(tooltip, 1);
+            if (drain > 0.0F) {
+                CreateLang.builder()
+                        .add(Component.literal(formatDuration(Math.round(tank.getFluidAmount() / drain))).withStyle(ChatFormatting.GOLD))
+                        .add(Component.translatable("gui.goggles.oxygen_fan.remaining").withStyle(ChatFormatting.GRAY))
+                        .forGoggles(tooltip, 1);
+            }
+        }
+
+        CreateLang.builder()
+                .add(Component.translatable("gui.goggles.oxygen_fan.tank"))
+                .style(ChatFormatting.GRAY)
+                .forGoggles(tooltip);
+        CreateLang.builder()
+                .add(Component.literal(String.valueOf(tank.getFluidAmount())).withStyle(tank.isEmpty() ? ChatFormatting.RED : ChatFormatting.AQUA))
+                .add(Component.literal(" / " + TANK_CAPACITY_MB + " mB").withStyle(ChatFormatting.DARK_GRAY))
+                .forGoggles(tooltip, 1);
+
+        if (isPlayerSneaking && canSeal) {
+            CreateLang.builder()
+                    .add(Component.literal(String.valueOf(ownCapacity)).withStyle(ChatFormatting.AQUA))
+                    .add(Component.translatable("gui.goggles.oxygen_fan.capacity_speed").withStyle(ChatFormatting.GRAY))
+                    .forGoggles(tooltip, 1);
+            if (sealer.getExtraVolume() > 0) {
+                CreateLang.builder()
+                        .add(Component.literal(String.valueOf(sealer.getExtraVolume())).withStyle(ChatFormatting.AQUA))
+                        .add(Component.translatable("gui.goggles.oxygen_fan.capacity_extra").withStyle(ChatFormatting.GRAY))
+                        .forGoggles(tooltip, 1);
+            }
+            if (sealer.isSealInProgress()) {
+                CreateLang.builder()
+                        .add(Component.translatable("gui.goggles.oxygen_fan.checking").withStyle(ChatFormatting.GRAY))
+                        .add(Component.literal(Math.round(sealer.getProgress(ownCapacity) * 100.0F) + "%").withStyle(ChatFormatting.AQUA))
+                        .forGoggles(tooltip);
+            }
+        }
+
+        return true;
+    }
+
+    private Component goggleStatus() {
+        if (!isInVacuum()) {
+            return Component.translatable("gui.goggles.oxygen_fan.status.breathable").withStyle(ChatFormatting.GRAY);
+        }
+        if (getSpeed() == 0.0F) {
+            return Component.translatable("gui.goggles.oxygen_fan.status.not_spinning").withStyle(ChatFormatting.GOLD);
+        }
+        if (!hasNozzle()) {
+            return Component.translatable("gui.goggles.oxygen_fan.status.no_nozzle").withStyle(ChatFormatting.GOLD);
+        }
+        if (sealer.hasLeak()) {
+            return Component.translatable("gui.goggles.oxygen_fan.status.leak").withStyle(ChatFormatting.RED);
+        }
+        if (sealer.isTooBig()) {
+            return Component.translatable("gui.goggles.oxygen_fan.status.too_big").withStyle(ChatFormatting.RED);
+        }
+        if (!sealer.isSealed()) {
+            return Component.translatable("gui.goggles.oxygen_fan.status.checking").withStyle(ChatFormatting.GRAY);
+        }
+        if (!active) {
+            return Component.translatable("gui.goggles.oxygen_fan.status.no_oxygen").withStyle(ChatFormatting.RED);
+        }
+        return Component.translatable("gui.goggles.oxygen_fan.status.working").withStyle(ChatFormatting.GREEN);
+    }
+
+    private static String formatDuration(int ticks) {
+        int totalSeconds = ticks / 20;
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        return minutes > 0 ? minutes + "m " + seconds + "s" : seconds + "s";
     }
 }

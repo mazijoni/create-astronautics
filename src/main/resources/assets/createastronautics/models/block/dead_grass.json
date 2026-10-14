@@ -1,0 +1,9 @@
+{
+    "parent": "minecraft:block/cube_bottom_top",
+    "textures": {
+        "top": "createastronautics:block/dead_grass_top",
+        "side": "createastronautics:block/dead_grass_side",
+        "bottom": "minecraft:block/dirt",
+        "particle": "minecraft:block/dirt"
+    }
+}

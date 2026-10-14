@@ -6,7 +6,7 @@
         "targets": [
             {
                 "state": {
-                    "Name": "createastronautics:moon_astrium_ore"
+                    "Name": "createastronautics:moon_crystallite_ore"
                 },
                 "target": {
                     "predicate_type": "minecraft:tag_match",
@@ -15,7 +15,7 @@
             },
             {
                 "state": {
-                    "Name": "createastronautics:moon_slate_astrium_ore"
+                    "Name": "createastronautics:moon_slate_crystallite_ore"
                 },
                 "target": {
                     "predicate_type": "minecraft:tag_match",

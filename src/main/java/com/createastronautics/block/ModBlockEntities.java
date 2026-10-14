@@ -15,6 +15,13 @@ public class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<OxygenFanBlockEntity>> OXYGEN_FAN = BLOCK_ENTITIES.register("oxygen_fan",
             ModBlockEntities::createOxygenFanType);
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RedstoneRegulatorBlockEntity>> REDSTONE_REGULATOR = BLOCK_ENTITIES.register("redstone_regulator",
+            ModBlockEntities::createRedstoneRegulatorType);
+
+    private static BlockEntityType<RedstoneRegulatorBlockEntity> createRedstoneRegulatorType() {
+        return BlockEntityType.Builder.of((pos, state) -> new RedstoneRegulatorBlockEntity(REDSTONE_REGULATOR.get(), pos, state), ModBlocks.REDSTONE_REGULATOR.get()).build(null);
+    }
+
     private static BlockEntityType<OxygenFanBlockEntity> createOxygenFanType() {
         return BlockEntityType.Builder.of((pos, state) -> new OxygenFanBlockEntity(OXYGEN_FAN.get(), pos, state), ModBlocks.OXYGEN_FAN.get()).build(null);
     }

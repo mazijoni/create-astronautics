@@ -1,0 +1,6 @@
+{
+  "parent": "createastronautics:block/redstone_regulator/block",
+  "textures": {
+    "top": "createastronautics:block/redstone_regulator/item"
+  }
+}

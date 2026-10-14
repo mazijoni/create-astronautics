@@ -17,14 +17,27 @@ import software.bernie.geckolib.model.GeoModel;
 public class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(CreateAstronautics.MODID);
 
+    // Crystallite was called astrium up to 0.2.0 - keeps items already sitting in existing worlds' inventories.
+    static {
+        ITEMS.addAlias(CreateAstronautics.id("moon_astrium_ore"), CreateAstronautics.id("moon_crystallite_ore"));
+        ITEMS.addAlias(CreateAstronautics.id("moon_slate_astrium_ore"), CreateAstronautics.id("moon_slate_crystallite_ore"));
+        ITEMS.addAlias(CreateAstronautics.id("astrium"), CreateAstronautics.id("crystallite"));
+    }
+
     public static final DeferredItem<BlockItem> MOON_DUST = ITEMS.register("moon_dust",
             () -> new BlockItem(ModBlocks.MOON_DUST.get(), new Item.Properties()));
 
-    public static final DeferredItem<BlockItem> SOLID_ROCKET_BOOSTER = ITEMS.register("solid_rocket_booster",
+    public static final DeferredItem<BlockItem> DEAD_GRASS = ITEMS.register("dead_grass",
+            () -> new BlockItem(ModBlocks.DEAD_GRASS.get(), new Item.Properties()));
+
+    public static final DeferredItem<BlockItem> SOLID_ROCKET_BOOSTER =ITEMS.register("solid_rocket_booster",
             () -> new BlockItem(ModBlocks.SOLID_ROCKET_BOOSTER.get(), new Item.Properties()));
 
     public static final DeferredItem<BlockItem> OXYGEN_FAN = ITEMS.register("oxygen_fan",
             () -> new BlockItem(ModBlocks.OXYGEN_FAN.get(), new Item.Properties()));
+
+    public static final DeferredItem<BlockItem> REDSTONE_REGULATOR = ITEMS.register("redstone_regulator",
+            () -> new BlockItem(ModBlocks.REDSTONE_REGULATOR.get(), new Item.Properties()));
 
     public static final DeferredItem<BlockItem> MOONSTONE_BLOCK = ITEMS.register("moonstone_block",
             () -> new BlockItem(ModBlocks.MOONSTONE_BLOCK.get(), new Item.Properties()));
@@ -62,15 +75,30 @@ public class ModItems {
     public static final DeferredItem<BlockItem> MOON_SLATE_IRON_ORE = ITEMS.register("moon_slate_iron_ore",
             () -> new BlockItem(ModBlocks.MOON_SLATE_IRON_ORE.get(), new Item.Properties()));
 
-    public static final DeferredItem<BlockItem> MOON_ASTRIUM_ORE = ITEMS.register("moon_astrium_ore",
-            () -> new BlockItem(ModBlocks.MOON_ASTRIUM_ORE.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> MOON_CRYSTALLITE_ORE = ITEMS.register("moon_crystallite_ore",
+            () -> new BlockItem(ModBlocks.MOON_CRYSTALLITE_ORE.get(), new Item.Properties()));
 
-    public static final DeferredItem<BlockItem> MOON_SLATE_ASTRIUM_ORE = ITEMS.register("moon_slate_astrium_ore",
-            () -> new BlockItem(ModBlocks.MOON_SLATE_ASTRIUM_ORE.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> MOON_SLATE_CRYSTALLITE_ORE = ITEMS.register("moon_slate_crystallite_ore",
+            () -> new BlockItem(ModBlocks.MOON_SLATE_CRYSTALLITE_ORE.get(), new Item.Properties()));
 
-    // Raw material dropped by moon_astrium_ore/moon_slate_astrium_ore - no further processing chain yet.
-    public static final DeferredItem<Item> ASTRIUM = ITEMS.register("astrium",
+    // Raw material dropped by moon_crystallite_ore/moon_slate_crystallite_ore - no further processing chain yet.
+    public static final DeferredItem<Item> CRYSTALLITE = ITEMS.register("crystallite",
             () -> new Item(new Item.Properties()));
+
+    // A 40% chance from crushing coal (see recipe/crushing/coal.json) - the carbon that, mixed with iron and
+    // quartz under superheat, makes titanium ingots.
+    public static final DeferredItem<Item> CARBON_DUST = ITEMS.register("carbon_dust",
+            () -> new Item(new Item.Properties()));
+
+    // Superheated mixing of 2 iron ingots, 1 quartz and 1 carbon dust (see recipe/mixing/titanium_ingot.json).
+    public static final DeferredItem<Item> TITANIUM_INGOT = ITEMS.register("titanium_ingot",
+            () -> new Item(new Item.Properties()));
+
+    public static final DeferredItem<BlockItem> TITANIUM_CASING = ITEMS.register("titanium_casing",
+            () -> new BlockItem(ModBlocks.TITANIUM_CASING.get(), new Item.Properties()));
+
+    public static final DeferredItem<BlockItem> OXYGEN_DETECTOR = ITEMS.register("oxygen_detector",
+            () -> new BlockItem(ModBlocks.OXYGEN_DETECTOR.get(), new Item.Properties()));
 
     // Matches vanilla's own torch item registration: attaches to the underside of a block by default,
     // falling back to a wall mount.
