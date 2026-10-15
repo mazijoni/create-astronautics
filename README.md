@@ -1,4 +1,4 @@
-![alt text](https://cdn.modrinth.com/data/cached_images/a09749c8c405cad70335fddcf52af035a7d341a4.png)
+![alt text](https://cdn.modrinth.com/data/cached_images/b1bab1d4848a2a7f5c8e76fc46633021efd7de66.png)
 
 # Create Astronautics
 
